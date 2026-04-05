@@ -17,84 +17,25 @@
     --green: #22c55e;
     --green-dim: #14532d;
     --red: #ef4444;
+    --orange: #f59e0b;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; min-height: 100vh; }
 
   /* ── Login ── */
-  #login-screen {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
-  }
-
-  .login-box {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 40px;
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-  }
-
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; text-align: center; }
   .login-box h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
   .login-box p { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
-
-  .login-box input[type="password"] {
-    width: 100%;
-    padding: 12px 16px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s;
-    margin-bottom: 12px;
-  }
-
+  .login-box input[type="password"] { width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.2s; margin-bottom: 12px; }
   .login-box input[type="password"]:focus { border-color: var(--blue); }
-  .login-box input[type="password"].error {
-    border-color: var(--red);
-    animation: shake 0.4s ease;
-  }
-
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-6px); }
-    80% { transform: translateX(6px); }
-  }
-
+  .login-box input[type="password"].error { border-color: var(--red); animation: shake 0.4s ease; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
   #login-error { color: var(--red); font-size: 13px; margin-bottom: 12px; min-height: 20px; }
 
   /* ── Buttons ── */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: opacity 0.15s, transform 0.1s;
-  }
-
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity 0.15s, transform 0.1s; }
   .btn:active { transform: scale(0.97); }
   .btn-primary { background: var(--blue); color: #fff; width: 100%; justify-content: center; }
   .btn-primary:hover { opacity: 0.88; }
@@ -104,297 +45,102 @@
   .btn-success:hover { opacity: 0.88; }
   .btn-sm { padding: 6px 12px; font-size: 13px; }
 
-  /* ── App ── */
+  /* ── App / Header ── */
   #app { display: none; }
-
-  header {
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .header-inner {
-    max-width: 960px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  header h1 { font-size: 16px; font-weight: 600; }
-  header p { color: var(--muted); font-size: 12px; margin-top: 2px; }
-
+  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 24px; position: sticky; top: 0; z-index: 100; }
+  .header-inner { max-width: 980px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 15px; font-weight: 600; }
+  header p { color: var(--muted); font-size: 12px; margin-top: 1px; }
   .header-right { display: flex; align-items: center; gap: 10px; }
-
-  .counter {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 3px 12px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-
+  .counter { background: var(--card2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; font-size: 13px; color: var(--muted); }
   .counter span { color: var(--green); font-weight: 600; }
 
   /* ── Tab bar ── */
-  .tab-bar-wrap {
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 57px;
-    z-index: 90;
-  }
-
-  .tab-bar {
-    max-width: 960px;
-    margin: 0 auto;
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 20px;
-  }
-
+  .tab-bar-wrap { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 53px; z-index: 90; }
+  .tab-bar { max-width: 980px; margin: 0 auto; display: flex; overflow-x: auto; scrollbar-width: none; padding: 0 16px; }
   .tab-bar::-webkit-scrollbar { display: none; }
-
-  .tab-btn {
-    flex-shrink: 0;
-    padding: 13px 16px;
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    font-size: 13px;
-    font-weight: 500;
-    transition: color 0.15s, border-color 0.15s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-
+  .tab-btn { flex-shrink: 0; padding: 12px 14px; border: none; background: transparent; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 500; transition: color 0.15s, border-color 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 7px; }
   .tab-btn:hover { color: var(--text); }
-
   .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
-  .tab-btn.tab-closed { color: var(--muted); }
-  .tab-btn.tab-closed .tab-dot { background: var(--green); }
+  .tab-btn.tab-info { color: var(--muted); }
+  .tab-btn.tab-info.active { color: var(--orange); border-bottom-color: var(--orange); }
   .tab-btn.tab-closed.active { color: var(--green); border-bottom-color: var(--green); }
-
-  .tab-num {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-    background: var(--blue-dim);
-    color: var(--blue);
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .tab-btn.tab-closed .tab-num {
-    background: var(--green-dim);
-    color: var(--green);
-  }
+  .tab-divider { width: 1px; background: var(--border); margin: 10px 4px; flex-shrink: 0; }
+  .tab-num { width: 19px; height: 19px; border-radius: 5px; background: var(--blue-dim); color: var(--blue); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tab-btn.tab-closed .tab-num { background: var(--green-dim); color: var(--green); }
 
   /* ── Tab content ── */
-  main {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 28px 20px 80px;
-  }
-
+  main { max-width: 980px; margin: 0 auto; padding: 24px 20px 80px; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
-  /* ── Content sections ── */
-  .section-block {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-
+  /* ── Content blocks ── */
+  .section-block { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
   .section-block.is-closed { border-color: var(--green-dim); }
-
-  .section-label {
-    padding: 11px 18px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    background: rgba(255,255,255,0.02);
-  }
-
+  .section-label { padding: 10px 18px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02); }
   .section-label.label-green { color: var(--green); }
-
-  .section-body {
-    padding: 18px;
-    font-size: 14px;
-    line-height: 1.75;
-  }
-
+  .section-label.label-orange { color: var(--orange); }
+  .section-body { padding: 18px; font-size: 14px; line-height: 1.75; }
   .section-body strong { color: #fff; }
+  .section-body h3 { font-size: 15px; font-weight: 600; margin: 16px 0 8px; color: #fff; }
+  .section-body h3:first-child { margin-top: 0; }
+  .section-body p { margin-bottom: 10px; }
+  .section-body p:last-child { margin-bottom: 0; }
   .section-body ul, .section-body ol { padding-left: 20px; margin: 8px 0; }
   .section-body li { margin-bottom: 4px; }
 
+  /* ── Flow / code blocks ── */
+  .flow-block { background: #0a0d15; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-family: 'Courier New', monospace; font-size: 12.5px; line-height: 1.8; white-space: pre; overflow-x: auto; color: #9bb8cc; margin: 12px 0; }
+  .flow-block:last-child { margin-bottom: 0; }
+
+  /* ── Tables ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { background: var(--card2); color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td:first-child { font-weight: 600; color: var(--blue); white-space: nowrap; }
+  .badge-diff { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .diff-low { background: var(--green-dim); color: var(--green); }
+  .diff-mid { background: #1a2e00; color: #84cc16; }
+  .diff-high { background: #2d1a00; color: var(--orange); }
+
   /* ── Comments ── */
-  .comments-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-
-  .comment-item {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 11px 14px;
-  }
-
-  .comment-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-  }
-
+  .comments-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .comment-item { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; }
+  .comment-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
   .comment-author { font-weight: 600; font-size: 13px; color: var(--blue); }
   .comment-ts { font-size: 12px; color: var(--muted); }
   .comment-text { font-size: 14px; line-height: 1.6; }
-
   .no-comments { color: var(--muted); font-size: 13px; font-style: italic; margin-bottom: 16px; }
-
   .comment-form { display: flex; flex-direction: column; gap: 8px; }
-
   .form-row { display: flex; gap: 8px; align-items: flex-start; }
 
-  select, input[type="text"], textarea {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-    padding: 9px 12px;
-    font-family: inherit;
-  }
-
+  /* ── Form controls ── */
+  select, input[type="text"], textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s; padding: 9px 12px; font-family: inherit; }
   select:focus, input[type="text"]:focus, textarea:focus { border-color: var(--blue); }
   select { cursor: pointer; flex: 0 0 130px; }
   textarea { resize: vertical; min-height: 68px; line-height: 1.5; flex: 1; width: 100%; }
-
-  /* ── Close section ── */
-  .close-label {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
-
   .final-area { margin-bottom: 12px; }
   .final-area textarea { min-height: 90px; width: 100%; }
 
-  /* ── Brief section ── */
-  .brief-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
+  /* ── Brief textarea ── */
+  .brief-text { background: #0a0d15; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: 'Courier New', monospace; font-size: 12.5px; line-height: 1.75; color: #b8cfe0; width: 100%; min-height: 280px; resize: vertical; }
+  .brief-text:focus { border-color: var(--green); }
+  .brief-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .brief-note { font-size: 12px; color: var(--muted); }
   .brief-actions { display: flex; gap: 8px; }
 
-  .brief-text {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    font-family: 'Courier New', monospace;
-    font-size: 12.5px;
-    line-height: 1.7;
-    white-space: pre-wrap;
-    word-break: break-word;
-    color: #c8d3e0;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-
-  /* ── Export Modal ── */
-  #export-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-
+  /* ── Export modal ── */
+  #export-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
   #export-modal.open { display: flex; }
-
-  .modal-box {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 28px;
-    width: 100%;
-    max-width: 700px;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
+  .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px; width: 100%; max-width: 720px; max-height: 85vh; display: flex; flex-direction: column; gap: 14px; }
   .modal-header { display: flex; align-items: center; justify-content: space-between; }
   .modal-header h2 { font-size: 16px; font-weight: 600; }
-
-  .modal-box textarea {
-    flex: 1;
-    min-height: 300px;
-    font-family: 'Courier New', monospace;
-    font-size: 12.5px;
-    background: var(--bg);
-    resize: none;
-    width: 100%;
-  }
-
+  .modal-box textarea { flex: 1; min-height: 300px; font-family: 'Courier New', monospace; font-size: 12.5px; background: var(--bg); resize: none; width: 100%; }
   .modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
 
   /* ── Saving indicator ── */
-  .saving-indicator {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    color: var(--muted);
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
-
+  .saving-indicator { position: fixed; bottom: 20px; right: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 13px; color: var(--muted); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   .saving-indicator.visible { opacity: 1; }
 
   @media (max-width: 600px) {
@@ -406,7 +152,6 @@
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <h1>Diagnoza Operacyjna</h1>
@@ -417,33 +162,27 @@
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <header>
     <div class="header-inner">
       <div>
-        <h1>Diagnoza Operacyjna — Klinika</h1>
+        <h1>Diagnoza Operacyjna — Klinika Medycyny Estetycznej</h1>
         <p>AI i automatyzacja — priorytety wdrożeń</p>
       </div>
       <div class="header-right">
-        <div class="counter">Zamknięte: <span id="closed-count">0</span>/6</div>
-        <button class="btn btn-ghost btn-sm" id="export-btn" onclick="openExport()" style="display:none">
-          ↗ Eksportuj briefe
-        </button>
+        <div class="counter">Zamknięte: <span id="closed-count">0</span>/8</div>
+        <button class="btn btn-ghost btn-sm" id="export-btn" onclick="openExport()" style="display:none">↗ Eksportuj briefe</button>
       </div>
     </div>
   </header>
-
   <div class="tab-bar-wrap">
     <div class="tab-bar" id="tab-bar"></div>
   </div>
-
   <main id="tab-content">
     <div style="text-align:center;padding:60px;color:var(--muted)">Ładowanie danych…</div>
   </main>
 </div>
 
-<!-- EXPORT MODAL -->
 <div id="export-modal">
   <div class="modal-box">
     <div class="modal-header">
@@ -471,127 +210,380 @@ const CONFIG = {
 };
 
 // ═══════════════════════════════════════════════════════
-//  DANE PROBLEMÓW
+//  INFO TABS
+// ═══════════════════════════════════════════════════════
+const INFO_TABS = [
+  {
+    id: 'diagnoza',
+    title: 'Diagnoza',
+    html: `
+<div class="section-block">
+  <div class="section-label label-orange">Podsumowanie — 8 problemów operacyjnych</div>
+  <div class="section-body">
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Problem</th><th>Skala bólu</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Chaos kalendarzy</strong> — Medfile i Booksy niezsynchronizowane. Kolizje wychodzą dopiero przy potwierdzeniu. Największy dzienny ból operacyjny.</td><td><span class="badge-diff diff-high">Krytyczny</span></td></tr>
+        <tr><td>2</td><td><strong>Skala i wzrost</strong> — 3 lekarzy, 3 asystentki, 2 lokalizacje, planowane rozszerzenie. Wszystkie procesy opierają się na nieformalnych nawykach — przy większym zespole model się posypie.</td><td><span class="badge-diff diff-high">Strategiczny</span></td></tr>
+        <tr><td>3</td><td><strong>Komunikacja bez systemu</strong> — zadania ustne, jeden Signal, wiadomości giną. Właściciel komunikuje się przez Telegram i głosem (bez Plauda).</td><td><span class="badge-diff diff-mid">Wysoki</span></td></tr>
+        <tr><td>4</td><td><strong>Opinie i motywacja</strong> — 840 opinii 5.0, ale Błonie zbiera raz na miesiąc (Warszawa 3/tydzień). Premie istnieją, ale nie są powiązane z celami. SMS wysyłany ręcznie przez T-Mobile Business.</td><td><span class="badge-diff diff-mid">Wysoki</span></td></tr>
+        <tr><td>5</td><td><strong>Social media martwe</strong> — brak aktualizacji od początku roku. Materiał wideo istnieje, ale czeka na voice-over. 840 opinii jako kontent — nieużywane.</td><td><span class="badge-diff diff-mid">Średni</span></td></tr>
+        <tr><td>6</td><td><strong>SEO bez kontroli</strong> — zewnętrzny dostawca nie raportuje. Właściciel nie obsługuje Search Console. Brak możliwości egzekwowania jakości.</td><td><span class="badge-diff diff-low">Niski</span></td></tr>
+        <tr><td>7</td><td><strong>Retencja</strong> — Medfile ma pełną historię wizyt. Nikt nie analizuje. Brak procesu reaktywacji pacjentów, którzy przestali przyjeżdżać.</td><td><span class="badge-diff diff-mid">Średni</span></td></tr>
+        <tr><td>8</td><td><strong>No-show</strong> — ~10% terminów odpada bez uprzedzenia. Jedyna prewencja: ręczny SMS asystentek 2 dni przed wizytą. Realna strata tygodniowa.</td><td><span class="badge-diff diff-mid">Średni</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">Jedno działanie przed startem całości</div>
+  <div class="section-body">
+    <p>Jednorazowy eksport z Medfile i weryfikacja danych kontaktowych. Jeśli numery telefonów są nieaktualne lub niekompletne, cztery moduły (przypomnienia, follow-up, retencja, audit danych) będą działać na złych podstawach.</p>
+    <p>Audit danych jest jednocześnie jednym z celów premiowych asystentek — co tworzy naturalną motywację do szybkiego sprzątania bazy.</p>
+  </div>
+</div>`
+  },
+  {
+    id: 'stack',
+    title: 'Stack',
+    html: `
+<div class="section-block">
+  <div class="section-label label-orange">Komunikacja z pacjentami — tylko T-Mobile</div>
+  <div class="section-body">
+    <p>Klinika już korzysta z <strong>T-Mobile Business</strong>, która posiada SMSC Direct Access API (TCP/IP). Integracja jest możliwa bez zmiany dostawcy — programowe wysyłanie i odbieranie SMS-ów przez to samo konto, które asystentki już używają ręcznie.</p>
+    <p>Żadnych nowych umów, żadnych nowych dostawców. Asystentki wciąż widzą te same SMS-y w swojej platformie.</p>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">Wejście głosowe właściciela — Telegram Voice Messages</div>
+  <div class="section-body">
+    <p>Właściciel <strong>nie ma Plauda</strong>. Komunikuje się naturalnie przez Telegram. Telegram natywnie obsługuje wiadomości głosowe — właściciel nagrywa głosówkę bezpośrednio w aplikacji.</p>
+    <p>Pipeline: właściciel nagrywa głosówkę → bot odbiera plik audio → transkrypcja przez <strong>Whisper API</strong> (~3 sekundy) → Claude przetwarza treść. Zero nowych urządzeń, zero nowych aplikacji.</p>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">ElevenLabs — Professional Clone z istniejącego materiału</div>
+  <div class="section-body">
+    <p>Klinika posiada nagrania wideo z sesji z kamerarzystą. Te nagrania zawierają czysty głos właściciela i mogą służyć jako dane treningowe do <strong>Professional Voice Clone</strong> w ElevenLabs — bez dodatkowej sesji nagraniowej.</p>
+    <p>Wymagane minimum: <strong>30 minut czystego audio</strong> (bez muzyki, tła, innych głosów). Optymalnie 1–3 godziny. Po jednorazowym stworzeniu klonu: właściciel wpisuje tekst lub dyktuje, ElevenLabs generuje audio w jego głosie w kilka sekund.</p>
+    <p>Plan Creator: <strong>$22/miesiąc</strong>.</p>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">Minimalizacja n8n — 3 główne workflow</div>
+  <div class="section-body">
+    <p>Zamiast wielu osobnych przepływów: <strong>3 workflow z wieloma triggerami i modułami</strong> + osobny Agent HR.</p>
+    <table class="data-table" style="margin-top:8px">
+      <thead><tr><th>Workflow</th><th>Zakres</th></tr></thead>
+      <tbody>
+        <tr><td>Operacje</td><td>Synchronizacja kalendarzy, zadania, powiadomienia asystentek, raporty dzienne</td></tr>
+        <tr><td>Pacjent</td><td>Przypomnienia SMS, follow-up po wizycie, retencja, churn detection</td></tr>
+        <tr><td>Marketing</td><td>Posty z opinii, AI przed/po, voice-over pipeline, raport SEO</td></tr>
+        <tr><td>Agent HR</td><td>Zbieranie danych o celach, motywacja asystentek, raport premii dla właściciela</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px">Łatwiejsze w utrzymaniu, debugowaniu i rozbudowie niż wiele osobnych przepływów.</p>
+  </div>
+</div>`
+  },
+  {
+    id: 'architektura',
+    title: 'Architektura',
+    html: `
+<div class="section-block">
+  <div class="section-label label-orange">Interfejs właściciela → agenci</div>
+  <div class="section-body">
+<pre class="flow-block">INTERFEJS WŁAŚCICIELA
+Telegram (tekst + głosówki)
+        │
+        ▼
+   Whisper API (transkrypcja, ~3 sekundy)
+        │
+        ▼
+Agent Konwersacyjny (Claude)
+        │
+        ├──► Asana MCP ──────────────────────────► zadania i śledzenie
+        ├──► Workflow "Pacjent" ─────────────────► follow-up, retencja
+        └──► Workflow "Marketing" ───────────────► zatwierdzanie postów</pre>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">Workflow "Pacjent" — n8n</div>
+  <div class="section-body">
+<pre class="flow-block">Medfile ──► przypomnienia (72h/24h przed wizytą) ──► T-Mobile SMS ──► pacjenci
+        ──► follow-up po wizycie (24h/48h)        ──► T-Mobile SMS ──► opinie / flaga negatywna
+        ──► churn detection (co niedzielę)        ──► Asana        ──► asystentki (lista reaktywacji)</pre>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">Workflow "Operacje" — n8n</div>
+  <div class="section-body">
+<pre class="flow-block">Medfile + Booksy ──► Google Calendar (hub) ──► detekcja kolizji ──► alert Telegram asystentki
+Asana            ──► 8:00 lista zadań na dziś                  ──► Telegram per asystentka
+                 ──► 18:00 raport dzienny                      ──► Telegram właściciel
+                 ──► Poniedziałek 9:00 checklista              ──► Telegram Ewelina (zaopatrzenie)</pre>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">Agent HR — osobny workflow n8n</div>
+  <div class="section-body">
+<pre class="flow-block">Asana + Medfile ──► zbieranie danych o celach (codziennie)  ──► Google Sheets
+Google Sheets   ──► środa: wyniki pośrednie per asystentka  ──► Telegram (Claude — spersonalizowane)
+Google Sheets   ──► piątek: raport końcowy z premiami       ──► Panel HTML właściciela
+Panel HTML      ──► zatwierdzenie premii jednym kliknięciem ──► Telegram asystentki (wynik)</pre>
+  </div>
+</div>
+<div class="section-block">
+  <div class="section-label label-orange">Workflow "Marketing" — n8n</div>
+  <div class="section-body">
+<pre class="flow-block">Google/Booksy (opinie)       ──► Claude caption ──► [zatw. Telegram] ──► Meta API (IG + FB)
+Google Drive (zdjęcia przed/po) ──► GPT-4V      ──► [zatw. Telegram] ──► Meta API
+ElevenLabs (voice-over)      ──► montaż         ──► [zatw. Telegram] ──► Meta API
+Google Search Console        ──► raport HTML    ──► Telegram + Gmail właściciela (co pon. 7:00)</pre>
+  </div>
+</div>`
+  },
+  {
+    id: 'wdrozenie',
+    title: 'Wdrożenie',
+    html: `
+<div class="section-block">
+  <div class="section-label label-orange">Priorytet wdrożenia — 10 kroków</div>
+  <div class="section-body">
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Co</th><th>Dlaczego teraz</th><th>Trudność</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Synchronizacja kalendarzy</strong></td><td>Największy dzienny ból operacyjny</td><td><span class="badge-diff diff-mid">Średnia</span></td></tr>
+        <tr><td>2</td><td><strong>Agent Telegram → Whisper → Asana</strong></td><td>Agenci już są, natychmiastowa ulga dla właściciela</td><td><span class="badge-diff diff-low">Niska</span></td></tr>
+        <tr><td>3</td><td><strong>Automatyczne przypomnienia SMS (no-show)</strong></td><td>Zastępuje ręczną pracę, T-Mobile API już jest</td><td><span class="badge-diff diff-low">Niska</span></td></tr>
+        <tr><td>4</td><td><strong>Follow-up po wizycie + opinie</strong></td><td>Bezpośredni wpływ na Booksy Błonie</td><td><span class="badge-diff diff-mid">Niska–Średnia</span></td></tr>
+        <tr><td>5</td><td><strong>Agent HR + system premiowania</strong></td><td>Wymaga ustalenia stawek, potem działa samo</td><td><span class="badge-diff diff-mid">Średnia</span></td></tr>
+        <tr><td>6</td><td><strong>Raport SEO</strong></td><td>Szybki win, jedno API</td><td><span class="badge-diff diff-low">Niska</span></td></tr>
+        <tr><td>7</td><td><strong>Social media z opinii</strong></td><td>Natychmiastowy kontent, zero produkcji</td><td><span class="badge-diff diff-mid">Średnia</span></td></tr>
+        <tr><td>8</td><td><strong>ElevenLabs Professional Clone</strong></td><td>Jednorazowe, odblokowuje wszystkie przyszłe treści wideo</td><td><span class="badge-diff diff-low">Niska (jednorazowe)</span></td></tr>
+        <tr><td>9</td><td><strong>Pipeline AI przed/po</strong></td><td>Duży efekt marketingowy, wymaga workflow ze zgodami</td><td><span class="badge-diff diff-high">Wyższa</span></td></tr>
+        <tr><td>10</td><td><strong>Retencja / churn detection</strong></td><td>Strategiczne, wymaga czystych danych z Medfile</td><td><span class="badge-diff diff-high">Wyższa</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>`
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+//  PROBLEMY
 // ═══════════════════════════════════════════════════════
 const PROBLEMS = [
   {
     id: 'p1',
     title: 'Kalendarze',
     fullTitle: 'Chaos operacyjny kalendarzy',
-    problem: `Klinika działa na dwóch równoległych systemach rezerwacji — <strong>Medfile</strong> (główny system medyczny) i <strong>Booksy</strong> (platforma dla pacjentów). Oba mają własne kalendarze, które nie są ze sobą zsynchronizowane w czasie rzeczywistym. Efekt: asystentka zapisuje pacjenta przez telefon do Medfile, a w tym samym momencie ktoś inny rezerwuje ten sam termin przez Booksy. Kolizja wychodzi na jaw dopiero przy potwierdzeniu.
+    problem: `Klinika działa równolegle na dwóch systemach rezerwacji: <strong>Medfile</strong> (główny system medyczny z kalendarzem, bazą pacjentów, cennikiem, raportami i etykietami usług) oraz <strong>Booksy</strong> (platforma do samodzielnej rezerwacji przez pacjentów). Oba mają własne kalendarze, które nie są zsynchronizowane w czasie rzeczywistym.
 
-Medfile synchronizuje się z Google Calendar (choć wymaga to ręcznego uruchomienia każdego ranka). Booksy — prawdopodobnie też, ale nie zostało to potwierdzone.
+Efekt: asystentka zapisuje pacjenta przez telefon w Medfile, a w tym samym momencie ktoś inny rezerwuje przez Booksy dokładnie ten sam termin. Kolizja wychodzi dopiero przy potwierdzeniu — i zaczyna się ręczne odkręcanie: dwa telefony, przepraszanie, przesuwanie wizyty. Zamiast jednej operacji mamy trzy.
 
-To jest według właściciela <strong>największy dzienny problem operacyjny</strong> kliniki.`,
-    solution: `<strong>Rozwiązanie zarządcze:</strong> Ustalić jedną zasadę: Medfile jest master calendar. Booksy służy tylko do samodzielnych rezerwacji online — ale każda rezerwacja z Booksy musi natychmiast trafiać do Medfile i blokować ten czas. Asystentki nie zapisują nikogo przez telefon bez sprawdzenia Google Calendar.
+Medfile synchronizuje się z Google Calendar, ale wymaga ręcznego uruchomienia każdego ranka. Booksy — prawdopodobnie też, ale wymaga weryfikacji. To jest, według właściciela, <strong>największy dzienny problem operacyjny kliniki.</strong>`,
+    solution: `<strong>Zarządczo:</strong> Medfile jest masterem. Booksy = wyłącznie rezerwacje online. Asystentki sprawdzają Google Calendar przed każdym zapisem telefonicznym.
 
-<strong>Rozwiązanie techniczne — architektura hub:</strong>
-<ul>
-<li>Medfile → synchronizacja z Google Calendar (już istnieje, wymaga automatyzacji co godzinę)</li>
-<li>Booksy → synchronizacja z Google Calendar (do weryfikacji przez API lub Zapier/Make)</li>
-<li>Agent monitorujący Google Calendar co 5 minut — wykrywa kolizje i wysyła alert na Telegram</li>
-</ul>
+<strong>Technicznie — Workflow "Operacje", moduł kalendarzy:</strong>
+<pre class="flow-block">Trigger: co 30 minut
+→ Pobierz zdarzenia z Medfile (API lub parsowanie emaili przez Google Workspace)
+→ Pobierz zdarzenia z Booksy (GCal sync lub parsowanie emaili potwierdzających)
+→ Zaktualizuj Google Calendar (hub)
+→ Sprawdź konflikty (ten sam lekarz, ten sam czas)
+→ Konflikt wykryty → alert Telegram do asystentek:
+   "⚠️ Konflikt: dr [X], [data], [godzina] — Medfile + Booksy. Zadzwoń do [imię]."</pre>
 
-Jeśli Booksy nie udostępnia API — można użyć webhooków Booksy lub parsować potwierdzenia mailowe z Google Workspace.
+Panel HTML: dzienny widok kalendarza per lekarz, konflikty wyróżnione na czerwono. Jedno okno, bez logowania.
 
-<strong>Narzędzia:</strong> n8n (self-hosted), Google Calendar API, Make.com jako backup`
+<strong>Narzędzia:</strong> n8n, Google Calendar API, Google Workspace, Telegram Bot API`
   },
   {
     id: 'p2',
-    title: 'Komunikacja',
-    fullTitle: 'Komunikacja wewnętrzna bez systemu',
-    problem: `Zadania są przekazywane ustnie — między gabinetem a recepcją, w biegu, między jednym pacjentem a drugim. Nie ma narzędzia do śledzenia, co zostało zlecone i co zostało wykonane. Komunikator grupowy (Signal) jest jeden dla całej rejestracji — wiadomości giną w strumieniu.
+    title: 'Skala',
+    fullTitle: 'Skala i wzrost — system nie jest gotowy na ekspansję',
+    problem: `Klinika zatrudnia obecnie <strong>3 lekarzy i 3 asystentki</strong>, działa w <strong>dwóch lokalizacjach (Błonie i Warszawa)</strong> i planuje zatrudnienie <strong>nowego asystenta i nowego lekarza</strong>.
 
-Efekt: zadania "wypadają" — szczególnie nieregularne, jednorazowe, zlecone głosem. Zamówienia zaopatrzenia wychodzą za późno. Kontakty z pacjentami są zapominane. Właściciel odczuwa to jako brak niezawodności zespołu, choć źródłem problemu jest brak systemu.`,
-    solution: `<strong>Rozwiązanie zarządcze:</strong> Każde ustne polecenie musi być zamienione na zadanie w Asanie w ciągu 2 minut. Obowiązek leży po stronie osoby przyjmującej zadanie. Każda asystentka, zaczynając zmianę, otwiera Asanę i sprawdza swoje zadania.
+Wszystkie obecne procesy — komunikacja, zadania, opinie, kalendarze — opierają się na nieformalnych nawykach, nie na systemach. Przy obecnej skali jakoś to działa. Przy większym zespole i dwóch lokalizacjach <strong>ten model się posypie.</strong>`,
+    solution: `<strong>Ten problem nie ma jednego rozwiązania — jest kontekstem dla całego projektu automatyzacji.</strong>
 
-<strong>Rozwiązanie techniczne — agent konwersacyjny (już zbudowany):</strong>
+Każda automatyzacja w tym systemie rozwiązuje jednocześnie dwa problemy: bieżący ból operacyjny <em>i</em> gotowość na skalę. Konkretne implikacje:
 <ul>
-<li>Właściciel mówi do Plaud lub na Telegramie: "Zadzwoń do Pani Kowalskiej…"</li>
-<li>Agent przetwarza wiadomość głosową → tworzy zadanie w Asanie z tytułem, opisem, przypisaniem, deadlinem</li>
-<li>Asystentka dostaje powiadomienie na Telegramie</li>
-<li>Po wykonaniu: odpisuje "zrobione" → agent zamyka zadanie w Asanie</li>
+<li><strong>Kalendarze:</strong> system musi działać dla 4–5 lekarzy w 2 lokalizacjach — Google Calendar jako hub to umożliwia</li>
+<li><strong>Zadania:</strong> Asana skaluje do dowolnej liczby asystentek; nowa asystentka od razu dostaje dostęp do systemu zamiast uczyć się nieformalnych nawykach</li>
+<li><strong>Opinie:</strong> automatyczny follow-up nie wymaga żadnej pracy asystentek — działa dla jednej i stu wizyt tak samo</li>
+<li><strong>Agent HR:</strong> premie i cele działają na tych samych zasadach dla 3 i 6 asystentek</li>
+<li><strong>Onboarding:</strong> nowa osoba w zespole dostaje jasny system zamiast "zapytaj koleżanki"</li>
 </ul>
 
-<strong>Agent Asana monitoring:</strong> Codziennie o 8:00 wysyła każdej asystentce jej listę zadań. O 18:00 wysyła właścicielowi raport: co zrobiono, co nie.
-
-<strong>Narzędzia:</strong> Agent konwersacyjny (już zbudowany) + Asana MCP (już zbudowany), n8n, Telegram Bot API`
+<strong>Metryka sukcesu:</strong> każdy z wdrożonych systemów powinien działać bez zmian przy podwojeniu zespołu i dodaniu 3. lokalizacji.`
   },
   {
     id: 'p3',
-    title: 'Opinie',
-    fullTitle: 'Zbieranie opinii — nieregularne i nieskuteczne',
-    problem: `Klinika ma <strong>840 opinii 5.0</strong> łącznie na Google Business Profile, Booksy i Znany Lekarz. To mocny aktyw. Ale opinie zbierane są nieregularnie — zależy od tego, czy asystentka zapyta. Na Booksy algorytm wyszukiwania premiuje kliniki zbierające opinie <strong>kilka razy w tygodniu</strong> — przy obecnym tempie klinika traci widoczność i nowych pacjentów.
+    title: 'Komunikacja',
+    fullTitle: 'Komunikacja wewnętrzna bez systemu',
+    problem: `Zadania są przekazywane ustnie — w biegu, między jednym pacjentem a drugim. Nie ma narzędzia do śledzenia, co zostało zlecone i wykonane. Jeden grupowy Signal dla całej rejestracji — wiadomości giną, asystentki pracują w różnych godzinach.
 
-Nie ma systematycznego follow-upu po wizycie z zapytaniem o samopoczucie — a to byłby naturalny punkt wejścia do prośby o opinię.`,
-    solution: `<strong>Rozwiązanie zarządcze:</strong> Podpiąć część premii asystentek pod liczbę zebranych opinii tygodniowo. Cel: minimum 3 opinie tygodniowo per lokalizacja na Booksy.
+Ewelina jest wyznaczona do zamówień zaopatrzenia, ale zdarzają się sytuacje CITO. Google Workspace istnieje, ale praktycznie nieużywany. <strong>Właściciel komunikuje się naturalnie głosem i przez Telegram — bez Plauda.</strong>`,
+    solution: `<strong>Zarządczo:</strong> Każde ustne polecenie → Asana w 2 minuty, obowiązek asystentki. Każda zmiana zaczyna się od sprawdzenia Asany. Ewelina ma stałą tygodniową checklistę zaopatrzenia.
 
-<strong>Rozwiązanie techniczne — automatyczny follow-up po wizycie:</strong>
+<strong>Technicznie — Agent konwersacyjny przez Telegram + Whisper:</strong>
+<pre class="flow-block">Właściciel nagrywa głosówkę na Telegramie
+→ n8n odbiera plik audio z Telegram API
+→ Whisper API transkrybuje (~3 sekundy)
+→ Claude: co zrobić / kto / kiedy
+→ Tworzy zadanie w Asanie (tytuł, opis, assignee, deadline)
+→ Asystentka dostaje Telegram: "📋 Nowe zadanie: [treść] — do [kiedy]"
+→ Asystentka odpisuje "zrobione" → agent zamyka zadanie w Asanie</pre>
+
+<strong>Dzienna rutyna (Workflow "Operacje"):</strong>
 <ul>
-<li><strong>24h po wizycie:</strong> SMS/WhatsApp z pytaniem "Jak się Pani/Pan czuje po zabiegu?" — wysłany automatycznie na podstawie danych z Medfile</li>
-<li><strong>48h po wizycie:</strong> jeśli pacjent odpowiedział pozytywnie (lub nie odpowiedział) → SMS z linkiem do opinii na Google/Booksy/Znany Lekarz</li>
-<li><strong>Odpowiedź negatywna:</strong> zamiast prośby o opinię → zadanie dla asystentki: "Oddzwoń do Pani X — niezadowolona"</li>
+<li><strong>8:00</strong> — każda asystentka dostaje listę swoich zadań na dziś przez Telegram</li>
+<li><strong>18:00</strong> — właściciel dostaje raport: zrobione / zaległe / wymagające uwagi</li>
+<li><strong>Poniedziałek 9:00</strong> — Ewelina dostaje checklistę zaopatrzenia</li>
 </ul>
 
-Dashboard HTML: właściciel widzi tygodniową liczbę opinii per platforma, trend miesięczny, alerty.
-
-<strong>Narzędzia:</strong> n8n, Medfile API/eksport, SMS przez T-Mobile API lub WhatsApp Business API`
+<strong>Narzędzia:</strong> Telegram Bot API, Whisper API, Agent konwersacyjny (już zbudowany), Asana MCP (już zbudowany), n8n`
   },
   {
     id: 'p4',
-    title: 'Social media',
-    fullTitle: 'Social media — martwe, mimo gotowego materiału',
-    problem: `Instagram i Facebook nie były aktualizowane od początku roku. Przyczyny: brak dedykowanej osoby, choroba właściciela, problem z voice-overem do nagranych filmów, brak procesu publikacji. <strong>Materiał wideo istnieje</strong> (nagrania z kamerarzystą), ale czeka na głos właściciela.
+    title: 'Opinie / HR',
+    fullTitle: 'Zbieranie opinii i motywacja zespołu — brak systemu i celów',
+    problem: `Klinika ma <strong>840 opinii w ratingu 5.0</strong> łącznie na Google Business Profile, Booksy i Znany Lekarz. Booksy premiuje algorytmicznie kliniki zbierające opinie kilka razy w tygodniu. <strong>Warszawa zbiera ok. 3 tygodniowo. Błonie — raz na miesiąc.</strong> Przy takim tempie Błonie traci widoczność i nowych pacjentów.
 
-Klinika ma 840 opinii tekstowych, które mogłyby służyć jako kontent — i nikt z tego nie korzysta.`,
-    solution: `<strong>Rozwiązanie zarządcze:</strong> Rozdzielić dwa problemy: (1) produkcja treści — wymaga właściciela; (2) publikacja treści — może być w pełni zautomatyzowana. Rytm: 3 posty tygodniowo. Zanim będzie gotowy materiał wideo, kontent z opinii.
+Mechanizm jest manualny: asystentki ręcznie wklepują SMS na platformie T-Mobile Business. Robią to nieregularnie, bo nie mają ani narzędzia, ani celu, ani motywacji finansowej.
 
-<strong>Agent do contentu z opinii:</strong>
-<ul>
-<li>Co tydzień agent wybiera 3 najlepsze opinie z Booksy/Google</li>
-<li>Formatuje jako gotowe posty (grafika + caption) w spójnym szablonie</li>
-<li>Wysyła do właściciela na Telegram do zatwierdzenia jednym kliknięciem</li>
-<li>Po zatwierdzeniu — automatycznie publikuje na Instagramie i Facebooku przez Meta API</li>
-</ul>
+Asystentki dostają premie, ale nie są one powiązane z żadnymi mierzalnymi celami. Ten potencjał motywacyjny jest dziś całkowicie niewykorzystany.`,
+    solution: `<strong>Zarządczo — 4 cele premiowe dla asystentek (właściciel ustala stawki):</strong>
+<table class="data-table" style="margin:10px 0">
+  <thead><tr><th>Cel</th><th>Jak mierzony</th><th>Próg do premii</th></tr></thead>
+  <tbody>
+    <tr><td>Opinie</td><td>Nowe opinie tygodniowo per lokalizacja</td><td>Min. 3/tydzień na Booksy</td></tr>
+    <tr><td>Retencja</td><td>Pacjent retencyjny umówiony (tag "umówiony" w Asanie)</td><td>Per umówiony pacjent</td></tr>
+    <tr><td>Zadania terminowe</td><td>% zadań zamkniętych przed deadlinem w tygodniu</td><td>Min. 90%</td></tr>
+    <tr><td>Porządek w danych</td><td>Kompletność tel. + email + daty ur. w Medfile</td><td>Tygodniowy audit</td></tr>
+  </tbody>
+</table>
 
-<strong>Pipeline dla istniejących filmów:</strong> ElevenLabs klonuje głos właściciela (próbka 30–60 min) → agent generuje voice-over ze skryptu → gotowy film trafia do Drive → zatwierdzenie → publikacja.
+<strong>Technicznie — Agent HR (osobny workflow n8n):</strong>
+<pre class="flow-block">ZBIERANIE DANYCH (codziennie):
+→ Asana API: ile zadań zamknięto przed deadlinem per asystentka
+→ Medfile eksport: ile nowych opinii per lokalizacja (atrybucja do dyżuru)
+→ Asana: ile zadań z tagiem "pacjent umówiony"
+→ Medfile: audit kompletności danych (% rekordów z tel + email + data ur.)
+→ Zapisuje do Google Sheets (baza danych premii)
 
-<strong>Narzędzia:</strong> n8n, Meta Graph API, GPT-4 Vision, ElevenLabs, Google Drive, Telegram Bot`
+KOMUNIKACJA DO ASYSTENTEK (Telegram, środa):
+→ Indywidualna wiadomość:
+   "📊 Twoje wyniki w tym tygodniu:
+   ✅ Opinie: 2/3 — jeszcze 1 do progu premii
+   ✅ Zadania na czas: 87% — prawie!
+   ⭐ Retencja: 1 pacjent umówiony — dobra robota!
+   📁 Dane: brakuje 4 telefonów — uzupełnij przed piątkiem"
+
+RAPORT KOŃCOWY (piątek → właściciel):
+→ Panel HTML: realizacja celów + naliczona premia (PLN) + trend + flagi
+→ Właściciel zatwierdza premie jednym kliknięciem
+→ Agent wysyła asystentce podsumowanie z wynikiem końcowym</pre>
+
+<strong>Narzędzia:</strong> n8n, Asana API, Medfile eksport, Google Sheets, Telegram Bot API, Claude, panel HTML`
   },
   {
     id: 'p5',
-    title: 'SEO',
-    fullTitle: 'Monitoring marketingu SEO — właściciel jest ślepy',
-    problem: `Klinika płaci za pozycjonowanie zewnętrznemu dostawcy. Dostawca nie raportuje proaktywnie. Właściciel nie ma czasu ani umiejętności, żeby samodzielnie czytać Google Search Console lub Analytics. Efekt: brak kontroli nad tym, czy pieniądze przynoszą efekt.`,
-    solution: `<strong>Rozwiązanie techniczne — agent raportowy (co poniedziałek rano):</strong>
-<ul>
-<li>Ściąga dane z Google Search Console API: kliknięcia, wyświetlenia, pozycja średnia, top 10 zapytań, trendy T/T</li>
-<li>Generuje prosty raport HTML — gotowy do czytania w 2 minuty</li>
-<li>Wysyła właścicielowi na Telegram i/lub email</li>
-</ul>
+    title: 'Social media',
+    fullTitle: 'Social media — martwe mimo gotowego materiału',
+    problem: `Instagram i Facebook martwe od początku roku. Istniejący materiał wideo (sesja z kamerarzystą według scenariuszy robionych z AI) <strong>jest zablokowany</strong> — czeka na voice-over właściciela, który nie był w pierwotnym planie. Właściciel chorował, brak zaufanej osoby do egzekucji.
 
-Raport odpowiada na trzy pytania: Czy ruch rośnie? Jakie zapytania nas znajdują? Czy pozycja się poprawia?
+Pomysły są i są dobre: analiza cery AI (przed/po) z rolkami lub karuzelami. <strong>840 opinii tekstowych jako gotowy kontent</strong> — nikt z tego nie korzysta. Właściciel ma sprzęt, osobę która go uczy, i jest gotowy nagrać próbkę głosu.`,
+    solution: `<strong>Zarządczo:</strong> Produkcja i publikacja rozdzielone. Właściciel zatwierdza, automat publikuje. Cel: 3 posty tygodniowo. Start natychmiast z opinii — wideo odblokowuje ElevenLabs z istniejącego materiału.
 
-<strong>Dodatkowy element:</strong> miesięczny raport porównawczy wysyłany bezpośrednio do dostawcy SEO z pytaniem o komentarz do konkretnych liczb.
+<strong>Pipeline 1 — Opinie jako kontent:</strong>
+<pre class="flow-block">Co poniedziałek:
+→ Pobierz 3 najlepsze nowe opinie (Google API + Booksy)
+→ Claude: formatuje caption w tonie kliniki
+→ Telegram do właściciela: podgląd posta + przyciski "Publikuj" / "Edytuj" / "Pomiń"
+→ Po zatwierdzeniu → Meta Graph API → Instagram + Facebook</pre>
 
-<strong>Narzędzia:</strong> Google Search Console API, n8n, HTML template, Telegram Bot`
+<strong>Pipeline 2 — AI analiza cery przed/po:</strong>
+<pre class="flow-block">Asystentka wrzuca zdjęcia przed/po do folderu Google Drive (zgoda pacjenta)
+→ GPT-4 Vision: analiza cery (faktura, koloryt, wiek, zmarszczki, poprawa %)
+→ Claude: caption z wynikami analizy w tonie kliniki
+→ Właściciel zatwierdza na Telegramie → publikacja</pre>
+
+<strong>Pipeline 3 — Voice-over z klonu głosu:</strong>
+<pre class="flow-block">Jednorazowo: wyeksportuj audio z sesji wideo (min. 30 min czystego głosu)
+→ Upload do ElevenLabs Professional Voice Clone → fine-tuning (~kilka godzin)
+→ Klon gotowy — właściciel już nigdy nie nagrywa głosu
+
+Dla każdego nowego wideo:
+→ Właściciel dyktuje lub wpisuje skrypt przez Telegram
+→ ElevenLabs API generuje audio w głosie właściciela (sekundy)
+→ Audio do kamerzysty lub automatyczny montaż
+→ Właściciel zatwierdza na Telegramie → publikacja</pre>
+
+<strong>Narzędzia:</strong> n8n, Meta Graph API, GPT-4 Vision, ElevenLabs API (Creator $22/mies.), Google Drive, Telegram Bot, Whisper API`
   },
   {
     id: 'p6',
+    title: 'SEO',
+    fullTitle: 'Monitoring marketingu SEO — brak kontroli nad dostawcą',
+    problem: `Klinika płaci za pozycjonowanie. Dostawca nie raportuje proaktywnie — odsyła do Search Console i Analytics, których właściciel nie obsługuje. <strong>Brak kontroli nad efektywnością wydatków i brak narzędzi do egzekwowania jakości od dostawcy.</strong>`,
+    solution: `<strong>Technicznie — Workflow "Marketing", moduł SEO:</strong>
+<pre class="flow-block">Co poniedziałek 7:00:
+→ Google Search Console API: kliknięcia, wyświetlenia, pozycja, top frazy, trendy T/T
+→ Generuj raport HTML (link bez logowania)
+→ Wyślij przez Telegram + Gmail właścicielowi
+
+Raport odpowiada na 3 pytania:
+  • Czy ruch rośnie?
+  • Jakie zapytania nas znajdują?
+  • Czy pozycja się poprawia?
+
+Co miesiąc:
+→ Raport porównawczy → automatycznie do dostawcy SEO
+→ Z prośbą o komentarz do konkretnych liczb</pre>
+
+<strong>Narzędzia:</strong> Google Search Console API, n8n, HTML template, Telegram, Gmail`
+  },
+  {
+    id: 'p7',
     title: 'Retencja',
-    fullTitle: 'Retencja pacjentów — churn detection',
-    problem: `Medfile zawiera pełną historię wizyt per pacjent, etykiety usług i cennik. Te dane pozwalają zidentyfikować pacjentów, którzy regularnie przyjeżdżali i nagle zniknęli. Nikt tego nie analizuje. Nie ma żadnego procesu odzyskiwania takich pacjentów.`,
-    solution: `<strong>Rozwiązanie techniczne — agent analizujący dane z Medfile:</strong>
-<ul>
-<li>Identyfikuje pacjentów aktywnych (min. 2 wizyty w 12 mies.) którzy nie wrócili od 90+ dni</li>
-<li>Segmentuje według: zabiegu, wartości (łączne wydatki), ostatniej wizyty</li>
-<li>Tworzy listę w Asanie: "Pacjenci do reaktywacji — ten tydzień"</li>
-<li>Opcjonalnie: agent wysyła personalizowaną wiadomość SMS/WhatsApp: "Minęło trochę czasu od ostatniej wizyty…"</li>
-</ul>
+    fullTitle: 'Retencja pacjentów — dane są, analiza nie istnieje',
+    problem: `Medfile zawiera pełną historię wizyt per pacjent, etykiety usług i cennik. Te dane pozwalają zidentyfikować pacjentów, którzy regularnie przyjeżdżali i nagle zniknęli. <strong>Nikt tych danych nie analizuje.</strong> Nie ma procesu odzyskiwania pacjentów, którzy przestali przyjeżdżać — mimo że właściciel wprost mówi, że "na pewno są pacjenci, którzy by wrócili."`,
+    solution: `<strong>Technicznie — Workflow "Pacjent", moduł retencji:</strong>
+<pre class="flow-block">Co niedzielę wieczór:
+→ Pobierz dane z Medfile
+→ Filtruj: min. 2 wizyty w 12 mies. + brak wizyty od 90+ dni
+→ Segmentuj: zabieg, wartość łączna, lokalizacja, ostatnia asystentka
+→ Utwórz zadania w Asanie per asystentka:
+   "Zadzwoń do [imię] — był/a [X] miesięcy temu, [zabieg], [lokalizacja]"
+→ Asystentka dzwoni, zamyka zadanie z tagiem:
+   umówiony / nie odbiera / nie chce
+→ Tag "umówiony" → Agent HR liczy do premii
+→ Właściciel zatwierdza wysyłkę SMS do "nie odbiera" po 2 próbach:
+   "Minęło trochę czasu od ostatniej wizyty. Czy mogę zaproponować termin?"</pre>
 
-<strong>Wymaganie wstępne:</strong> jednorazowe przygotowanie eksportu z Medfile i ustalenie logiki segmentacji (jakie zabiegi, jakie progi czasowe).
+<strong>Narzędzia:</strong> n8n, Medfile eksport/API, Asana, T-Mobile SMS API (zatwierdzane przez właściciela)`
+  },
+  {
+    id: 'p8',
+    title: 'No-show',
+    fullTitle: 'No-show — niedoceniany koszt',
+    problem: `<strong>~10% terminów odpada bez uprzedzenia.</strong> Jedyna prewencja to ręczny SMS asystentek 2 dni przed wizytą. Przy intensywnym grafiku 3 lekarzy w 2 lokalizacjach to realna strata tygodniowa — zarówno finansowa, jak i operacyjna (brak czasu na wpuszczenie pacjenta z listy oczekujących).`,
+    solution: `<strong>Technicznie — Workflow "Pacjent", moduł przypomnień:</strong>
+<pre class="flow-block">Trigger: nowa wizyta potwierdzona w Medfile
+→ 72h przed wizytą:
+   SMS T-Mobile: "Przypomnienie: wizyta [data], [godzina], dr [X], [lokalizacja].
+   Aby odwołać, odpisz ODWOŁUJĘ."
+→ 24h przed wizytą:
+   SMS: krótkie przypomnienie + info o przygotowaniu (jeśli zabieg wymaga)
 
-<strong>Narzędzia:</strong> n8n, Medfile eksport/API, Python (analiza danych), Asana, SMS API`
+Pacjent odpisuje ODWOŁUJĘ:
+→ Zwolnij termin w Google Calendar
+→ Alert Telegram do asystentek:
+   "🔓 Wolny termin: [data], [godzina], dr [X] — zadzwoń z listy oczekujących"</pre>
+
+<strong>Narzędzia:</strong> n8n, T-Mobile SMS API, Google Calendar API, Telegram Bot`
   }
 ];
 
@@ -599,11 +591,11 @@ Raport odpowiada na trzy pytania: Czy ruch rośnie? Jakie zapytania nas znajduj�
 //  STATE
 // ═══════════════════════════════════════════════════════
 let state = {};
-let activeTab = 'p1';
+let activeTab = 'diagnoza';
 
 function emptyState() {
   const s = {};
-  PROBLEMS.forEach(p => { s[p.id] = { comments: [], closed: false, finalComment: '' }; });
+  PROBLEMS.forEach(p => { s[p.id] = { comments: [], closed: false, finalComment: '', briefText: '' }; });
   return s;
 }
 
@@ -647,6 +639,7 @@ async function loadData() {
   if (!CONFIG.JSONBIN_BIN_ID) {
     const saved = localStorage.getItem('gabinet-diagnoza');
     state = saved ? JSON.parse(saved) : emptyState();
+    migrateMissingKeys();
     renderAll();
     return;
   }
@@ -657,12 +650,22 @@ async function loadData() {
     const res = await fetch(`${JSONBIN_BASE}/${CONFIG.JSONBIN_BIN_ID}/latest`, { headers });
     const json = await res.json();
     state = json.record && json.record.p1 ? json.record : emptyState();
+    migrateMissingKeys();
   } catch (e) {
     console.warn('JSONBin load failed, falling back to localStorage', e);
     const saved = localStorage.getItem('gabinet-diagnoza');
     state = saved ? JSON.parse(saved) : emptyState();
+    migrateMissingKeys();
   }
   renderAll();
+}
+
+function migrateMissingKeys() {
+  // Ensure all problem IDs exist (handles migration from 6→8 problems)
+  PROBLEMS.forEach(p => {
+    if (!state[p.id]) state[p.id] = { comments: [], closed: false, finalComment: '', briefText: '' };
+    if (!state[p.id].briefText) state[p.id].briefText = '';
+  });
 }
 
 let saveTimer = null;
@@ -699,26 +702,33 @@ function renderAll() {
 
 function renderTabBar() {
   const bar = document.getElementById('tab-bar');
-  bar.innerHTML = PROBLEMS.map((p, i) => {
+  const infoHtml = INFO_TABS.map(t =>
+    `<button class="tab-btn tab-info ${t.id === activeTab ? 'active' : ''}" onclick="switchTab('${t.id}')">${t.title}</button>`
+  ).join('');
+  const divider = `<div class="tab-divider"></div>`;
+  const probHtml = PROBLEMS.map((p, i) => {
     const ps = state[p.id] || {};
     const closedClass = ps.closed ? 'tab-closed' : '';
-    const activeClass = p.id === activeTab ? 'active' : '';
-    return `<button class="tab-btn ${closedClass} ${activeClass}" onclick="switchTab('${p.id}')">
+    return `<button class="tab-btn ${closedClass} ${p.id === activeTab ? 'active' : ''}" onclick="switchTab('${p.id}')">
       <span class="tab-num">${i + 1}</span>${p.title}
     </button>`;
   }).join('');
+  bar.innerHTML = infoHtml + divider + probHtml;
 }
 
 function renderTabContent() {
   const container = document.getElementById('tab-content');
-  container.innerHTML = PROBLEMS.map(p => `
-    <div class="tab-panel ${p.id === activeTab ? 'active' : ''}" id="panel-${p.id}">
-      ${renderPanel(p)}
-    </div>`).join('');
+  const infoPanels = INFO_TABS.map(t =>
+    `<div class="tab-panel ${t.id === activeTab ? 'active' : ''}" id="panel-${t.id}">${t.html}</div>`
+  ).join('');
+  const probPanels = PROBLEMS.map(p =>
+    `<div class="tab-panel ${p.id === activeTab ? 'active' : ''}" id="panel-${p.id}">${renderPanel(p)}</div>`
+  ).join('');
+  container.innerHTML = infoPanels + probPanels;
 }
 
 function renderPanel(p) {
-  const ps = state[p.id] || { comments: [], closed: false, finalComment: '' };
+  const ps = state[p.id] || { comments: [], closed: false, finalComment: '', briefText: '' };
 
   const commentsHtml = ps.comments.length === 0
     ? '<p class="no-comments">Brak komentarzy.</p>'
@@ -751,8 +761,7 @@ function renderPanel(p) {
       <div class="section-label">Zamknij plan</div>
       <div class="section-body">
         <div class="final-area">
-          <textarea
-            id="final-${p.id}"
+          <textarea id="final-${p.id}"
             placeholder="Opisz konkretnie, co agent ma automatyzować w tym rozwiązaniu — to będzie podstawą briefu dla Claude Code…"
             oninput="updateFinalComment('${p.id}', this.value)"
           >${esc(ps.finalComment)}</textarea>
@@ -763,35 +772,36 @@ function renderPanel(p) {
       </div>
     </div>`;
 
+  const briefContent = ps.briefText || generateBrief(p.id);
   const briefBlock = ps.closed ? `
     <div class="section-block is-closed">
       <div class="section-label label-green">Brief dla Claude Code</div>
       <div class="section-body">
         <div class="brief-header">
+          <span class="brief-note">Edytowalny — zmiany zapisują się automatycznie</span>
           <div class="brief-actions">
             <button class="btn btn-ghost btn-sm" onclick="reopenPlan('${p.id}')">↩ Otwórz ponownie</button>
             <button class="btn btn-ghost btn-sm" onclick="copyBrief('${p.id}')">Kopiuj brief</button>
           </div>
         </div>
-        <div class="brief-text" id="brief-${p.id}">${esc(generateBrief(p.id))}</div>
+        <textarea class="brief-text" id="brief-${p.id}"
+          oninput="updateBriefText('${p.id}', this.value)"
+        >${esc(briefContent)}</textarea>
       </div>
     </div>` : '';
 
   return `
-    <div style="margin-bottom:6px">
-      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">${esc(p.fullTitle)}</h2>
+    <div style="margin-bottom:14px">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:3px">${esc(p.fullTitle)}</h2>
     </div>
-
     <div class="section-block">
       <div class="section-label">Problem</div>
       <div class="section-body">${p.problem}</div>
     </div>
-
     <div class="section-block">
       <div class="section-label">Rozwiązanie</div>
       <div class="section-body">${p.solution}</div>
     </div>
-
     <div class="section-block">
       <div class="section-label">Komentarze zespołu</div>
       <div class="section-body">
@@ -799,22 +809,20 @@ function renderPanel(p) {
         ${commentForm}
       </div>
     </div>
-
     ${closeBlock}
     ${briefBlock}`;
 }
 
 function esc(str) {
   if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function formatTs(ts) {
   if (!ts) return '';
   const d = new Date(ts);
-  return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })
-    + ' ' + d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleDateString('pl-PL', {day:'2-digit',month:'2-digit',year:'numeric'})
+    + ' ' + d.toLocaleTimeString('pl-PL', {hour:'2-digit',minute:'2-digit'});
 }
 
 // ═══════════════════════════════════════════════════════
@@ -823,16 +831,14 @@ function formatTs(ts) {
 function switchTab(id) {
   activeTab = id;
   renderTabBar();
-  PROBLEMS.forEach(p => {
-    const panel = document.getElementById('panel-' + p.id);
-    if (panel) panel.classList.toggle('active', p.id === id);
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + id);
   });
 }
 
-function updateFinalComment(id, val) {
-  state[id].finalComment = val;
-  scheduleSave();
-}
+function updateFinalComment(id, val) { state[id].finalComment = val; scheduleSave(); }
+
+function updateBriefText(id, val) { state[id].briefText = val; scheduleSave(); }
 
 function addComment(id) {
   const authorEl = document.getElementById('author-' + id);
@@ -864,6 +870,7 @@ function closePlan(id) {
     return;
   }
   state[id].finalComment = final;
+  state[id].briefText = generateBrief(id);
   state[id].closed = true;
   state[id].closedAt = new Date().toISOString();
   refreshPanel(id);
@@ -899,13 +906,15 @@ function updateCounter() {
 // ═══════════════════════════════════════════════════════
 function stripHtml(html) {
   return html
-    .replace(/<strong>/gi, '**').replace(/<\/strong>/gi, '**')
-    .replace(/<ul>/gi, '').replace(/<\/ul>/gi, '')
-    .replace(/<li>/gi, '- ').replace(/<\/li>/gi, '\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-    .replace(/\n{3,}/g, '\n\n').trim();
+    .replace(/<strong>/gi,'**').replace(/<\/strong>/gi,'**')
+    .replace(/<ul>/gi,'').replace(/<\/ul>/gi,'')
+    .replace(/<li>/gi,'- ').replace(/<\/li>/gi,'\n')
+    .replace(/<br\s*\/?>/gi,'\n')
+    .replace(/<pre[^>]*>/gi,'').replace(/<\/pre>/gi,'')
+    .replace(/<table[^>]*>[\s\S]*?<\/table>/gi,'[tabela — patrz sekcja Rozwiązanie]')
+    .replace(/<[^>]+>/g,'')
+    .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
+    .replace(/\n{3,}/g,'\n\n').trim();
 }
 
 function generateBrief(id) {
@@ -936,7 +945,9 @@ Używaj narzędzi i integracji wymienionych w sekcji rozwiązania. Wygeneruj got
 }
 
 function copyBrief(id) {
-  navigator.clipboard.writeText(generateBrief(id)).then(() => {
+  const ta = document.getElementById('brief-' + id);
+  const text = ta ? ta.value : generateBrief(id);
+  navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector(`#panel-${id} .brief-actions .btn:last-child`);
     if (btn) { btn.textContent = '✓ Skopiowano'; setTimeout(() => btn.textContent = 'Kopiuj brief', 1500); }
   });
@@ -947,7 +958,8 @@ function copyBrief(id) {
 // ═══════════════════════════════════════════════════════
 function openExport() {
   const closed = PROBLEMS.filter(p => state[p.id] && state[p.id].closed);
-  document.getElementById('export-textarea').value = closed.map(p => generateBrief(p.id)).join('\n\n' + '═'.repeat(60) + '\n\n');
+  const text = closed.map(p => state[p.id].briefText || generateBrief(p.id)).join('\n\n' + '═'.repeat(60) + '\n\n');
+  document.getElementById('export-textarea').value = text;
   document.getElementById('export-modal').classList.add('open');
 }
 
@@ -962,16 +974,13 @@ function copyExport() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  KEYBOARD
+//  KEYBOARD + AUTO-LOGIN
 // ═══════════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') login();
   if (e.key === 'Escape') closeExport();
 });
 
-// ═══════════════════════════════════════════════════════
-//  AUTO-LOGIN
-// ═══════════════════════════════════════════════════════
 if (sessionStorage.getItem('auth') === '1' || !CONFIG.PASSWORD_HASH) {
   proceedToApp();
 }
