@@ -17,7 +17,6 @@
     --green: #22c55e;
     --green-dim: #14532d;
     --red: #ef4444;
-    --yellow: #f59e0b;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +30,7 @@
     min-height: 100vh;
   }
 
-  /* ── Login Screen ── */
+  /* ── Login ── */
   #login-screen {
     display: flex;
     align-items: center;
@@ -50,17 +49,8 @@
     text-align: center;
   }
 
-  .login-box h1 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-
-  .login-box p {
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 28px;
-  }
+  .login-box h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .login-box p { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
 
   .login-box input[type="password"] {
     width: 100%;
@@ -75,10 +65,7 @@
     margin-bottom: 12px;
   }
 
-  .login-box input[type="password"]:focus {
-    border-color: var(--blue);
-  }
-
+  .login-box input[type="password"]:focus { border-color: var(--blue); }
   .login-box input[type="password"].error {
     border-color: var(--red);
     animation: shake 0.4s ease;
@@ -92,12 +79,7 @@
     80% { transform: translateX(6px); }
   }
 
-  #login-error {
-    color: var(--red);
-    font-size: 13px;
-    margin-bottom: 12px;
-    min-height: 20px;
-  }
+  #login-error { color: var(--red); font-size: 13px; margin-bottom: 12px; min-height: 20px; }
 
   /* ── Buttons ── */
   .btn {
@@ -111,44 +93,16 @@
     font-size: 14px;
     font-weight: 500;
     transition: opacity 0.15s, transform 0.1s;
-    text-decoration: none;
   }
 
   .btn:active { transform: scale(0.97); }
-
-  .btn-primary {
-    background: var(--blue);
-    color: #fff;
-    width: 100%;
-    justify-content: center;
-  }
-
+  .btn-primary { background: var(--blue); color: #fff; width: 100%; justify-content: center; }
   .btn-primary:hover { opacity: 0.88; }
-
-  .btn-ghost {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-  }
-
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
   .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
-
-  .btn-success {
-    background: var(--green);
-    color: #000;
-  }
-
+  .btn-success { background: var(--green); color: #000; }
   .btn-success:hover { opacity: 0.88; }
-
-  .btn-danger {
-    background: var(--red);
-    color: #fff;
-  }
-
-  .btn-sm {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
 
   /* ── App ── */
   #app { display: none; }
@@ -156,14 +110,14 @@
   header {
     background: var(--card);
     border-bottom: 1px solid var(--border);
-    padding: 18px 24px;
+    padding: 16px 24px;
     position: sticky;
     top: 0;
     z-index: 100;
   }
 
   .header-inner {
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     display: flex;
     align-items: center;
@@ -172,75 +126,73 @@
     flex-wrap: wrap;
   }
 
-  header h1 {
-    font-size: 17px;
-    font-weight: 600;
-  }
+  header h1 { font-size: 16px; font-weight: 600; }
+  header p { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
-  header p {
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 2px;
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  .header-right { display: flex; align-items: center; gap: 10px; }
 
   .counter {
     background: var(--card2);
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 4px 12px;
+    padding: 3px 12px;
     font-size: 13px;
     color: var(--muted);
   }
 
-  .counter span {
-    color: var(--green);
-    font-weight: 600;
-  }
+  .counter span { color: var(--green); font-weight: 600; }
 
-  main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 24px 20px 60px;
-  }
-
-  /* ── Problem Card ── */
-  .card {
+  /* ── Tab bar ── */
+  .tab-bar-wrap {
     background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 16px;
-    overflow: hidden;
-    transition: border-color 0.2s;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 57px;
+    z-index: 90;
   }
 
-  .card.is-closed {
-    border-color: var(--green-dim);
+  .tab-bar {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 20px;
   }
 
-  .card-header {
+  .tab-bar::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 13px 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 18px 20px;
-    cursor: pointer;
-    user-select: none;
+    gap: 7px;
   }
 
-  .card-header:hover { background: rgba(255,255,255,0.02); }
+  .tab-btn:hover { color: var(--text); }
 
-  .problem-num {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-btn.tab-closed { color: var(--muted); }
+  .tab-btn.tab-closed .tab-dot { background: var(--green); }
+  .tab-btn.tab-closed.active { color: var(--green); border-bottom-color: var(--green); }
+
+  .tab-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
     background: var(--blue-dim);
     color: var(--blue);
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -248,122 +200,56 @@
     flex-shrink: 0;
   }
 
-  .is-closed .problem-num {
+  .tab-btn.tab-closed .tab-num {
     background: var(--green-dim);
     color: var(--green);
   }
 
-  .card-title {
-    flex: 1;
-    font-size: 15px;
-    font-weight: 600;
+  /* ── Tab content ── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
   }
 
-  .badge {
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
 
-  .badge-open {
-    background: var(--blue-dim);
-    color: var(--blue);
-  }
-
-  .badge-closed {
-    background: var(--green-dim);
-    color: var(--green);
-  }
-
-  .chevron {
-    color: var(--muted);
-    transition: transform 0.2s;
-    flex-shrink: 0;
-  }
-
-  .card.expanded .chevron {
-    transform: rotate(180deg);
-  }
-
-  .card-body {
-    display: none;
-    border-top: 1px solid var(--border);
-  }
-
-  .card.expanded .card-body {
-    display: block;
-  }
-
-  /* ── Sections inside card ── */
-  .section {
-    border-bottom: 1px solid var(--border);
-  }
-
-  .section:last-child {
-    border-bottom: none;
-  }
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-
-  .section-header:hover { color: var(--text); }
-
-  .section-content {
-    display: none;
-    padding: 0 20px 20px;
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.7;
-  }
-
-  .section.expanded .section-content {
-    display: block;
-  }
-
-  .section-content p { margin-bottom: 10px; }
-  .section-content p:last-child { margin-bottom: 0; }
-  .section-content strong { color: #fff; }
-  .section-content ul, .section-content ol {
-    padding-left: 20px;
-    margin-bottom: 10px;
-  }
-  .section-content li { margin-bottom: 4px; }
-  .section-content code {
-    background: var(--card2);
+  /* ── Content sections ── */
+  .section-block {
+    background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-family: monospace;
-    font-size: 13px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
   }
+
+  .section-block.is-closed { border-color: var(--green-dim); }
+
+  .section-label {
+    padding: 11px 18px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .section-label.label-green { color: var(--green); }
+
+  .section-body {
+    padding: 18px;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  .section-body strong { color: #fff; }
+  .section-body ul, .section-body ol { padding-left: 20px; margin: 8px 0; }
+  .section-body li { margin-bottom: 4px; }
 
   /* ── Comments ── */
-  .comments-section {
-    padding: 16px 20px 20px;
-  }
-
-  .comments-label {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
-
   .comments-list {
     display: flex;
     flex-direction: column;
@@ -375,60 +261,27 @@
     background: var(--card2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 12px 14px;
+    padding: 11px 14px;
   }
 
   .comment-meta {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
 
-  .comment-author {
-    font-weight: 600;
-    font-size: 13px;
-    color: var(--blue);
-  }
+  .comment-author { font-weight: 600; font-size: 13px; color: var(--blue); }
+  .comment-ts { font-size: 12px; color: var(--muted); }
+  .comment-text { font-size: 14px; line-height: 1.6; }
 
-  .comment-ts {
-    font-size: 12px;
-    color: var(--muted);
-  }
+  .no-comments { color: var(--muted); font-size: 13px; font-style: italic; margin-bottom: 16px; }
 
-  .comment-text {
-    font-size: 14px;
-    line-height: 1.6;
-  }
+  .comment-form { display: flex; flex-direction: column; gap: 8px; }
 
-  .no-comments {
-    color: var(--muted);
-    font-size: 13px;
-    font-style: italic;
-    margin-bottom: 16px;
-  }
+  .form-row { display: flex; gap: 8px; align-items: flex-start; }
 
-  .comment-form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .form-row {
-    display: flex;
-    gap: 8px;
-  }
-
-  .form-row input {
-    flex: 0 0 160px;
-  }
-
-  .form-row textarea {
-    flex: 1;
-  }
-
-  input[type="text"],
-  textarea {
+  select, input[type="text"], textarea {
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -437,65 +290,37 @@
     outline: none;
     transition: border-color 0.2s;
     padding: 9px 12px;
-    width: 100%;
     font-family: inherit;
   }
 
-  input[type="text"]:focus,
-  textarea:focus {
-    border-color: var(--blue);
-  }
-
-  textarea {
-    resize: vertical;
-    min-height: 72px;
-    line-height: 1.5;
-  }
+  select:focus, input[type="text"]:focus, textarea:focus { border-color: var(--blue); }
+  select { cursor: pointer; flex: 0 0 130px; }
+  textarea { resize: vertical; min-height: 68px; line-height: 1.5; flex: 1; width: 100%; }
 
   /* ── Close section ── */
-  .close-section {
-    padding: 16px 20px 20px;
-    border-top: 1px solid var(--border);
-  }
-
   .close-label {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     color: var(--muted);
     margin-bottom: 12px;
   }
 
-  .final-comment-area {
-    margin-bottom: 12px;
-  }
+  .final-area { margin-bottom: 12px; }
+  .final-area textarea { min-height: 90px; width: 100%; }
 
-  .final-comment-area textarea {
-    min-height: 90px;
-  }
-
-  /* ── Brief ── */
-  .brief-section {
-    padding: 16px 20px 20px;
-    border-top: 1px solid var(--border);
-    background: rgba(34, 197, 94, 0.04);
-  }
-
-  .brief-label {
+  /* ── Brief section ── */
+  .brief-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
-  .brief-label span {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--green);
-  }
+  .brief-actions { display: flex; gap: 8px; }
 
   .brief-text {
     background: var(--bg);
@@ -524,9 +349,7 @@
     padding: 20px;
   }
 
-  #export-modal.open {
-    display: flex;
-  }
+  #export-modal.open { display: flex; }
 
   .modal-box {
     background: var(--card);
@@ -541,16 +364,8 @@
     gap: 14px;
   }
 
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .modal-header h2 {
-    font-size: 16px;
-    font-weight: 600;
-  }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h2 { font-size: 16px; font-weight: 600; }
 
   .modal-box textarea {
     flex: 1;
@@ -559,15 +374,12 @@
     font-size: 12.5px;
     background: var(--bg);
     resize: none;
+    width: 100%;
   }
 
-  .modal-footer {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-  }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
 
-  /* ── Loading indicator ── */
+  /* ── Saving indicator ── */
   .saving-indicator {
     position: fixed;
     bottom: 20px;
@@ -583,30 +395,18 @@
     pointer-events: none;
   }
 
-  .saving-indicator.visible {
-    opacity: 1;
-  }
+  .saving-indicator.visible { opacity: 1; }
 
-  /* ── Responsive ── */
   @media (max-width: 600px) {
-    .form-row {
-      flex-direction: column;
-    }
-    .form-row input {
-      flex: 1;
-    }
-    .header-right {
-      width: 100%;
-      justify-content: space-between;
-    }
+    .form-row { flex-direction: column; }
+    select { flex: 1; }
+    .header-right { width: 100%; justify-content: space-between; }
   }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════
-     LOGIN SCREEN
-═══════════════════════════════════════════════ -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <h1>Diagnoza Operacyjna</h1>
@@ -617,9 +417,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     MAIN APP
-═══════════════════════════════════════════════ -->
+<!-- APP -->
 <div id="app">
   <header>
     <div class="header-inner">
@@ -636,15 +434,16 @@
     </div>
   </header>
 
-  <main id="cards-container">
-    <!-- Cards rendered by JS -->
+  <div class="tab-bar-wrap">
+    <div class="tab-bar" id="tab-bar"></div>
+  </div>
+
+  <main id="tab-content">
     <div style="text-align:center;padding:60px;color:var(--muted)">Ładowanie danych…</div>
   </main>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     EXPORT MODAL
-═══════════════════════════════════════════════ -->
+<!-- EXPORT MODAL -->
 <div id="export-modal">
   <div class="modal-box">
     <div class="modal-header">
@@ -658,14 +457,11 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     SAVING INDICATOR
-═══════════════════════════════════════════════ -->
 <div class="saving-indicator" id="saving-indicator">Zapisywanie…</div>
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  CONFIG — wypełnij przed deployem (uruchom setup.js)
+//  CONFIG
 // ═══════════════════════════════════════════════════════
 const CONFIG = {
   PASSWORD_HASH: '14d7bf10e51501f93b86a77e9d4fc0b0735a635bd12410780c3f324685b2bd2b',
@@ -680,7 +476,8 @@ const CONFIG = {
 const PROBLEMS = [
   {
     id: 'p1',
-    title: 'Chaos operacyjny kalendarzy',
+    title: 'Kalendarze',
+    fullTitle: 'Chaos operacyjny kalendarzy',
     problem: `Klinika działa na dwóch równoległych systemach rezerwacji — <strong>Medfile</strong> (główny system medyczny) i <strong>Booksy</strong> (platforma dla pacjentów). Oba mają własne kalendarze, które nie są ze sobą zsynchronizowane w czasie rzeczywistym. Efekt: asystentka zapisuje pacjenta przez telefon do Medfile, a w tym samym momencie ktoś inny rezerwuje ten sam termin przez Booksy. Kolizja wychodzi na jaw dopiero przy potwierdzeniu.
 
 Medfile synchronizuje się z Google Calendar (choć wymaga to ręcznego uruchomienia każdego ranka). Booksy — prawdopodobnie też, ale nie zostało to potwierdzone.
@@ -701,7 +498,8 @@ Jeśli Booksy nie udostępnia API — można użyć webhooków Booksy lub parsow
   },
   {
     id: 'p2',
-    title: 'Komunikacja wewnętrzna bez systemu',
+    title: 'Komunikacja',
+    fullTitle: 'Komunikacja wewnętrzna bez systemu',
     problem: `Zadania są przekazywane ustnie — między gabinetem a recepcją, w biegu, między jednym pacjentem a drugim. Nie ma narzędzia do śledzenia, co zostało zlecone i co zostało wykonane. Komunikator grupowy (Signal) jest jeden dla całej rejestracji — wiadomości giną w strumieniu.
 
 Efekt: zadania "wypadają" — szczególnie nieregularne, jednorazowe, zlecone głosem. Zamówienia zaopatrzenia wychodzą za późno. Kontakty z pacjentami są zapominane. Właściciel odczuwa to jako brak niezawodności zespołu, choć źródłem problemu jest brak systemu.`,
@@ -721,7 +519,8 @@ Efekt: zadania "wypadają" — szczególnie nieregularne, jednorazowe, zlecone g
   },
   {
     id: 'p3',
-    title: 'Zbieranie opinii — nieregularne i nieskuteczne',
+    title: 'Opinie',
+    fullTitle: 'Zbieranie opinii — nieregularne i nieskuteczne',
     problem: `Klinika ma <strong>840 opinii 5.0</strong> łącznie na Google Business Profile, Booksy i Znany Lekarz. To mocny aktyw. Ale opinie zbierane są nieregularnie — zależy od tego, czy asystentka zapyta. Na Booksy algorytm wyszukiwania premiuje kliniki zbierające opinie <strong>kilka razy w tygodniu</strong> — przy obecnym tempie klinika traci widoczność i nowych pacjentów.
 
 Nie ma systematycznego follow-upu po wizycie z zapytaniem o samopoczucie — a to byłby naturalny punkt wejścia do prośby o opinię.`,
@@ -740,7 +539,8 @@ Dashboard HTML: właściciel widzi tygodniową liczbę opinii per platforma, tre
   },
   {
     id: 'p4',
-    title: 'Social media — martwe, mimo gotowego materiału',
+    title: 'Social media',
+    fullTitle: 'Social media — martwe, mimo gotowego materiału',
     problem: `Instagram i Facebook nie były aktualizowane od początku roku. Przyczyny: brak dedykowanej osoby, choroba właściciela, problem z voice-overem do nagranych filmów, brak procesu publikacji. <strong>Materiał wideo istnieje</strong> (nagrania z kamerarzystą), ale czeka na głos właściciela.
 
 Klinika ma 840 opinii tekstowych, które mogłyby służyć jako kontent — i nikt z tego nie korzysta.`,
@@ -760,7 +560,8 @@ Klinika ma 840 opinii tekstowych, które mogłyby służyć jako kontent — i n
   },
   {
     id: 'p5',
-    title: 'Monitoring marketingu SEO — właściciel jest ślepy',
+    title: 'SEO',
+    fullTitle: 'Monitoring marketingu SEO — właściciel jest ślepy',
     problem: `Klinika płaci za pozycjonowanie zewnętrznemu dostawcy. Dostawca nie raportuje proaktywnie. Właściciel nie ma czasu ani umiejętności, żeby samodzielnie czytać Google Search Console lub Analytics. Efekt: brak kontroli nad tym, czy pieniądze przynoszą efekt.`,
     solution: `<strong>Rozwiązanie techniczne — agent raportowy (co poniedziałek rano):</strong>
 <ul>
@@ -777,7 +578,8 @@ Raport odpowiada na trzy pytania: Czy ruch rośnie? Jakie zapytania nas znajduj�
   },
   {
     id: 'p6',
-    title: 'Retencja pacjentów — churn detection',
+    title: 'Retencja',
+    fullTitle: 'Retencja pacjentów — churn detection',
     problem: `Medfile zawiera pełną historię wizyt per pacjent, etykiety usług i cennik. Te dane pozwalają zidentyfikować pacjentów, którzy regularnie przyjeżdżali i nagle zniknęli. Nikt tego nie analizuje. Nie ma żadnego procesu odzyskiwania takich pacjentów.`,
     solution: `<strong>Rozwiązanie techniczne — agent analizujący dane z Medfile:</strong>
 <ul>
@@ -797,12 +599,11 @@ Raport odpowiada na trzy pytania: Czy ruch rośnie? Jakie zapytania nas znajduj�
 //  STATE
 // ═══════════════════════════════════════════════════════
 let state = {};
+let activeTab = 'p1';
 
 function emptyState() {
   const s = {};
-  PROBLEMS.forEach(p => {
-    s[p.id] = { comments: [], closed: false, finalComment: '' };
-  });
+  PROBLEMS.forEach(p => { s[p.id] = { comments: [], closed: false, finalComment: '' }; });
   return s;
 }
 
@@ -819,13 +620,7 @@ async function login() {
   const errorEl = document.getElementById('login-error');
   const val = input.value.trim();
   if (!val) return;
-
-  // If no hash configured, allow any password (demo mode)
-  if (!CONFIG.PASSWORD_HASH) {
-    proceedToApp();
-    return;
-  }
-
+  if (!CONFIG.PASSWORD_HASH) { proceedToApp(); return; }
   const hash = await sha256hex(val);
   if (hash === CONFIG.PASSWORD_HASH) {
     sessionStorage.setItem('auth', '1');
@@ -850,18 +645,15 @@ const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b';
 
 async function loadData() {
   if (!CONFIG.JSONBIN_BIN_ID) {
-    // No backend configured — use localStorage
     const saved = localStorage.getItem('gabinet-diagnoza');
     state = saved ? JSON.parse(saved) : emptyState();
     renderAll();
     return;
   }
-
   try {
     const headers = { 'Content-Type': 'application/json' };
     if (CONFIG.JSONBIN_ACCESS_KEY) headers['X-Access-Key'] = CONFIG.JSONBIN_ACCESS_KEY;
     else if (CONFIG.JSONBIN_MASTER_KEY) headers['X-Master-Key'] = CONFIG.JSONBIN_MASTER_KEY;
-
     const res = await fetch(`${JSONBIN_BASE}/${CONFIG.JSONBIN_BIN_ID}/latest`, { headers });
     const json = await res.json();
     state = json.record && json.record.p1 ? json.record : emptyState();
@@ -881,54 +673,52 @@ function scheduleSave() {
 
 async function persistData() {
   showSaving();
-  // Always save to localStorage as backup
   localStorage.setItem('gabinet-diagnoza', JSON.stringify(state));
-
-  if (!CONFIG.JSONBIN_BIN_ID || !CONFIG.JSONBIN_MASTER_KEY) {
-    hideSaving();
-    return;
-  }
-
+  if (!CONFIG.JSONBIN_BIN_ID || !CONFIG.JSONBIN_MASTER_KEY) { hideSaving(); return; }
   try {
     await fetch(`${JSONBIN_BASE}/${CONFIG.JSONBIN_BIN_ID}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Master-Key': CONFIG.JSONBIN_MASTER_KEY
-      },
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.JSONBIN_MASTER_KEY },
       body: JSON.stringify(state)
     });
-  } catch (e) {
-    console.warn('JSONBin save failed', e);
-  }
+  } catch (e) { console.warn('JSONBin save failed', e); }
   hideSaving();
 }
 
-function showSaving() {
-  document.getElementById('saving-indicator').classList.add('visible');
-}
-
-function hideSaving() {
-  setTimeout(() => {
-    document.getElementById('saving-indicator').classList.remove('visible');
-  }, 600);
-}
+function showSaving() { document.getElementById('saving-indicator').classList.add('visible'); }
+function hideSaving() { setTimeout(() => document.getElementById('saving-indicator').classList.remove('visible'), 600); }
 
 // ═══════════════════════════════════════════════════════
 //  RENDER
 // ═══════════════════════════════════════════════════════
 function renderAll() {
-  const container = document.getElementById('cards-container');
-  container.innerHTML = PROBLEMS.map(p => renderCard(p)).join('');
+  renderTabBar();
+  renderTabContent();
   updateCounter();
 }
 
-function renderCard(p) {
+function renderTabBar() {
+  const bar = document.getElementById('tab-bar');
+  bar.innerHTML = PROBLEMS.map((p, i) => {
+    const ps = state[p.id] || {};
+    const closedClass = ps.closed ? 'tab-closed' : '';
+    const activeClass = p.id === activeTab ? 'active' : '';
+    return `<button class="tab-btn ${closedClass} ${activeClass}" onclick="switchTab('${p.id}')">
+      <span class="tab-num">${i + 1}</span>${p.title}
+    </button>`;
+  }).join('');
+}
+
+function renderTabContent() {
+  const container = document.getElementById('tab-content');
+  container.innerHTML = PROBLEMS.map(p => `
+    <div class="tab-panel ${p.id === activeTab ? 'active' : ''}" id="panel-${p.id}">
+      ${renderPanel(p)}
+    </div>`).join('');
+}
+
+function renderPanel(p) {
   const ps = state[p.id] || { comments: [], closed: false, finalComment: '' };
-  const closedClass = ps.closed ? 'is-closed' : '';
-  const badge = ps.closed
-    ? '<span class="badge badge-closed">✓ Zamknięte</span>'
-    : '<span class="badge badge-open">Otwarte</span>';
 
   const commentsHtml = ps.comments.length === 0
     ? '<p class="no-comments">Brak komentarzy.</p>'
@@ -941,82 +731,83 @@ function renderCard(p) {
           <div class="comment-text">${esc(c.text)}</div>
         </div>`).join('');
 
-  const closeSection = ps.closed ? '' : `
-    <div class="close-section">
-      <div class="close-label">Zamknij plan</div>
-      <div class="final-comment-area">
-        <textarea
-          id="final-${p.id}"
-          placeholder="Opisz konkretnie, co agent ma automatyzować w tym rozwiązaniu — to będzie podstawą briefu dla Claude Code…"
-          onchange="updateFinalComment('${p.id}', this.value)"
-        >${esc(ps.finalComment)}</textarea>
+  const commentForm = ps.closed ? '' : `
+    <div class="comment-form">
+      <div class="form-row">
+        <select id="author-${p.id}">
+          <option value="">— Wybierz osobę —</option>
+          <option value="Hipek">Hipek</option>
+          <option value="Kuba">Kuba</option>
+        </select>
+        <textarea id="text-${p.id}" placeholder="Twój komentarz…"></textarea>
       </div>
-      <button class="btn btn-success btn-sm" onclick="closePlan('${p.id}')">
-        ✓ Zamknij plan i wygeneruj brief
-      </button>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="addComment('${p.id}')">Dodaj komentarz</button>
+      </div>
     </div>`;
 
-  const briefSection = ps.closed ? `
-    <div class="brief-section">
-      <div class="brief-label">
-        <span>Brief dla Claude Code</span>
-        <button class="btn btn-ghost btn-sm" onclick="copyBrief('${p.id}')">Kopiuj brief</button>
+  const closeBlock = ps.closed ? '' : `
+    <div class="section-block">
+      <div class="section-label">Zamknij plan</div>
+      <div class="section-body">
+        <div class="final-area">
+          <textarea
+            id="final-${p.id}"
+            placeholder="Opisz konkretnie, co agent ma automatyzować w tym rozwiązaniu — to będzie podstawą briefu dla Claude Code…"
+            oninput="updateFinalComment('${p.id}', this.value)"
+          >${esc(ps.finalComment)}</textarea>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="closePlan('${p.id}')">
+          ✓ Zamknij plan i wygeneruj brief
+        </button>
       </div>
-      <div class="brief-text" id="brief-${p.id}">${esc(generateBrief(p.id))}</div>
+    </div>`;
+
+  const briefBlock = ps.closed ? `
+    <div class="section-block is-closed">
+      <div class="section-label label-green">Brief dla Claude Code</div>
+      <div class="section-body">
+        <div class="brief-header">
+          <div class="brief-actions">
+            <button class="btn btn-ghost btn-sm" onclick="reopenPlan('${p.id}')">↩ Otwórz ponownie</button>
+            <button class="btn btn-ghost btn-sm" onclick="copyBrief('${p.id}')">Kopiuj brief</button>
+          </div>
+        </div>
+        <div class="brief-text" id="brief-${p.id}">${esc(generateBrief(p.id))}</div>
+      </div>
     </div>` : '';
 
   return `
-  <div class="card ${closedClass}" id="card-${p.id}">
-    <div class="card-header" onclick="toggleCard('${p.id}')">
-      <div class="problem-num">${PROBLEMS.indexOf(p) + 1}</div>
-      <div class="card-title">${esc(p.title)}</div>
-      ${badge}
-      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>
+    <div style="margin-bottom:6px">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">${esc(p.fullTitle)}</h2>
     </div>
-    <div class="card-body">
-      <div class="section">
-        <div class="section-header" onclick="toggleSection(this)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          Problem
-        </div>
-        <div class="section-content">${p.problem}</div>
-      </div>
-      <div class="section">
-        <div class="section-header" onclick="toggleSection(this)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-          Rozwiązanie
-        </div>
-        <div class="section-content">${p.solution}</div>
-      </div>
-      <div class="comments-section">
-        <div class="comments-label">Komentarze zespołu</div>
-        <div class="comments-list" id="comments-${p.id}">${commentsHtml}</div>
-        ${ps.closed ? '' : `
-        <div class="comment-form">
-          <div class="form-row">
-            <input type="text" id="author-${p.id}" placeholder="Twoje imię">
-            <textarea id="text-${p.id}" placeholder="Twój komentarz…" rows="2"></textarea>
-          </div>
-          <div style="display:flex;justify-content:flex-end">
-            <button class="btn btn-ghost btn-sm" onclick="addComment('${p.id}')">Dodaj komentarz</button>
-          </div>
-        </div>`}
-      </div>
-      ${closeSection}
-      ${briefSection}
+
+    <div class="section-block">
+      <div class="section-label">Problem</div>
+      <div class="section-body">${p.problem}</div>
     </div>
-  </div>`;
+
+    <div class="section-block">
+      <div class="section-label">Rozwiązanie</div>
+      <div class="section-body">${p.solution}</div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-label">Komentarze zespołu</div>
+      <div class="section-body">
+        <div class="comments-list">${commentsHtml}</div>
+        ${commentForm}
+      </div>
+    </div>
+
+    ${closeBlock}
+    ${briefBlock}`;
 }
 
 function esc(str) {
   if (!str) return '';
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function formatTs(ts) {
@@ -1029,13 +820,13 @@ function formatTs(ts) {
 // ═══════════════════════════════════════════════════════
 //  INTERACTIONS
 // ═══════════════════════════════════════════════════════
-function toggleCard(id) {
-  const card = document.getElementById('card-' + id);
-  card.classList.toggle('expanded');
-}
-
-function toggleSection(headerEl) {
-  headerEl.closest('.section').classList.toggle('expanded');
+function switchTab(id) {
+  activeTab = id;
+  renderTabBar();
+  PROBLEMS.forEach(p => {
+    const panel = document.getElementById('panel-' + p.id);
+    if (panel) panel.classList.toggle('active', p.id === id);
+  });
 }
 
 function updateFinalComment(id, val) {
@@ -1046,27 +837,18 @@ function updateFinalComment(id, val) {
 function addComment(id) {
   const authorEl = document.getElementById('author-' + id);
   const textEl = document.getElementById('text-' + id);
-  const author = authorEl.value.trim();
+  const author = authorEl.value;
   const text = textEl.value.trim();
   if (!author || !text) {
     if (!author) authorEl.style.borderColor = 'var(--red)';
     if (!text) textEl.style.borderColor = 'var(--red)';
-    setTimeout(() => {
-      authorEl.style.borderColor = '';
-      textEl.style.borderColor = '';
-    }, 1200);
+    setTimeout(() => { authorEl.style.borderColor = ''; textEl.style.borderColor = ''; }, 1200);
     return;
   }
   state[id].comments.push({ author, text, ts: new Date().toISOString() });
   authorEl.value = '';
   textEl.value = '';
-  // Re-render just this card
-  const card = document.getElementById('card-' + id);
-  const wasExpanded = card.classList.contains('expanded');
-  const p = PROBLEMS.find(x => x.id === id);
-  card.outerHTML = renderCard(p);
-  const newCard = document.getElementById('card-' + id);
-  if (wasExpanded) newCard.classList.add('expanded');
+  refreshPanel(id);
   scheduleSave();
 }
 
@@ -1074,22 +856,35 @@ function closePlan(id) {
   const finalEl = document.getElementById('final-' + id);
   const final = finalEl ? finalEl.value.trim() : state[id].finalComment;
   if (!final) {
-    finalEl.style.borderColor = 'var(--red)';
-    finalEl.placeholder = 'Wymagane! Opisz fokus automatyzacji przed zamknięciem.';
-    setTimeout(() => { finalEl.style.borderColor = ''; }, 1500);
+    if (finalEl) {
+      finalEl.style.borderColor = 'var(--red)';
+      finalEl.placeholder = 'Wymagane! Opisz fokus automatyzacji przed zamknięciem.';
+      setTimeout(() => { finalEl.style.borderColor = ''; }, 1500);
+    }
     return;
   }
   state[id].finalComment = final;
   state[id].closed = true;
   state[id].closedAt = new Date().toISOString();
-  // Re-render card
-  const card = document.getElementById('card-' + id);
-  const p = PROBLEMS.find(x => x.id === id);
-  card.outerHTML = renderCard(p);
-  const newCard = document.getElementById('card-' + id);
-  newCard.classList.add('expanded');
+  refreshPanel(id);
   updateCounter();
   scheduleSave();
+}
+
+function reopenPlan(id) {
+  state[id].closed = false;
+  state[id].closedAt = null;
+  refreshPanel(id);
+  updateCounter();
+  scheduleSave();
+}
+
+function refreshPanel(id) {
+  const panel = document.getElementById('panel-' + id);
+  if (!panel) return;
+  const p = PROBLEMS.find(x => x.id === id);
+  panel.innerHTML = renderPanel(p);
+  renderTabBar();
 }
 
 function updateCounter() {
@@ -1106,25 +901,21 @@ function stripHtml(html) {
   return html
     .replace(/<strong>/gi, '**').replace(/<\/strong>/gi, '**')
     .replace(/<ul>/gi, '').replace(/<\/ul>/gi, '')
-    .replace(/<ol>/gi, '').replace(/<\/ol>/gi, '')
     .replace(/<li>/gi, '- ').replace(/<\/li>/gi, '\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, '')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function generateBrief(id) {
   const p = PROBLEMS.find(x => x.id === id);
   const ps = state[id];
   if (!p || !ps) return '';
-
   const commentsText = ps.comments.length > 0
     ? ps.comments.map(c => `- ${c.author} (${formatTs(c.ts)}): ${c.text}`).join('\n')
     : '(brak komentarzy)';
-
-  return `# Brief dla Claude Code: ${p.title}
+  return `# Brief dla Claude Code: ${p.fullTitle}
 
 ## Problem operacyjny
 ${stripHtml(p.problem)}
@@ -1145,9 +936,8 @@ Używaj narzędzi i integracji wymienionych w sekcji rozwiązania. Wygeneruj got
 }
 
 function copyBrief(id) {
-  const text = generateBrief(id);
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector(`#card-${id} .brief-section .btn`);
+  navigator.clipboard.writeText(generateBrief(id)).then(() => {
+    const btn = document.querySelector(`#panel-${id} .brief-actions .btn:last-child`);
     if (btn) { btn.textContent = '✓ Skopiowano'; setTimeout(() => btn.textContent = 'Kopiuj brief', 1500); }
   });
 }
@@ -1157,14 +947,11 @@ function copyBrief(id) {
 // ═══════════════════════════════════════════════════════
 function openExport() {
   const closed = PROBLEMS.filter(p => state[p.id] && state[p.id].closed);
-  const text = closed.map(p => generateBrief(p.id)).join('\n\n' + '═'.repeat(60) + '\n\n');
-  document.getElementById('export-textarea').value = text;
+  document.getElementById('export-textarea').value = closed.map(p => generateBrief(p.id)).join('\n\n' + '═'.repeat(60) + '\n\n');
   document.getElementById('export-modal').classList.add('open');
 }
 
-function closeExport() {
-  document.getElementById('export-modal').classList.remove('open');
-}
+function closeExport() { document.getElementById('export-modal').classList.remove('open'); }
 
 function copyExport() {
   const ta = document.getElementById('export-textarea');
@@ -1175,22 +962,17 @@ function copyExport() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  KEYBOARD SHORTCUTS
+//  KEYBOARD
 // ═══════════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
-    login();
-  }
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') login();
   if (e.key === 'Escape') closeExport();
 });
 
 // ═══════════════════════════════════════════════════════
-//  AUTO-LOGIN (if session still active)
+//  AUTO-LOGIN
 // ═══════════════════════════════════════════════════════
-if (sessionStorage.getItem('auth') === '1') {
-  proceedToApp();
-} else if (!CONFIG.PASSWORD_HASH) {
-  // Demo mode: no password configured
+if (sessionStorage.getItem('auth') === '1' || !CONFIG.PASSWORD_HASH) {
   proceedToApp();
 }
 </script>
