@@ -607,6 +607,7 @@ function isProblemTab(id) { return PROBLEMS.some(p => p.id === id); }
 function emptyState() {
   const s = {};
   PROBLEMS.forEach(p => { s[p.id] = { comments: [], closed: false, finalComment: '', briefText: '' }; });
+  INFO_TABS.forEach(t => { s[t.id] = { comments: [] }; });
   return s;
 }
 
@@ -672,10 +673,12 @@ async function loadData() {
 }
 
 function migrateMissingKeys() {
-  // Ensure all problem IDs exist (handles migration from 6→8 problems)
   PROBLEMS.forEach(p => {
     if (!state[p.id]) state[p.id] = { comments: [], closed: false, finalComment: '', briefText: '' };
     if (!state[p.id].briefText) state[p.id].briefText = '';
+  });
+  INFO_TABS.forEach(t => {
+    if (!state[t.id]) state[t.id] = { comments: [] };
   });
 }
 
@@ -742,10 +745,44 @@ function switchToProblems() {
   switchTab(lastActiveProblem);
 }
 
+function renderInfoPanel(t) {
+  const ts = state[t.id] || { comments: [] };
+  const commentsHtml = ts.comments.length === 0
+    ? '<p class="no-comments">Brak komentarzy.</p>'
+    : ts.comments.map(c => `
+        <div class="comment-item">
+          <div class="comment-meta">
+            <span class="comment-author">${esc(c.author)}</span>
+            <span class="comment-ts">${formatTs(c.ts)}</span>
+          </div>
+          <div class="comment-text">${esc(c.text)}</div>
+        </div>`).join('');
+  return t.html + `
+    <div class="section-block">
+      <div class="section-label">Komentarze zespołu</div>
+      <div class="section-body">
+        <div class="comments-list">${commentsHtml}</div>
+        <div class="comment-form">
+          <div class="form-row">
+            <select id="author-${t.id}">
+              <option value="">— Wybierz osobę —</option>
+              <option value="Hipek">Hipek</option>
+              <option value="Kuba">Kuba</option>
+            </select>
+            <textarea id="text-${t.id}" placeholder="Twój komentarz…"></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end">
+            <button class="btn btn-ghost btn-sm" onclick="addComment('${t.id}')">Dodaj komentarz</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderTabContent() {
   const container = document.getElementById('tab-content');
   const infoPanels = INFO_TABS.map(t =>
-    `<div class="tab-panel ${t.id === activeTab ? 'active' : ''}" id="panel-${t.id}">${t.html}</div>`
+    `<div class="tab-panel ${t.id === activeTab ? 'active' : ''}" id="panel-${t.id}">${renderInfoPanel(t)}</div>`
   ).join('');
   const probPanels = PROBLEMS.map(p =>
     `<div class="tab-panel ${p.id === activeTab ? 'active' : ''}" id="panel-${p.id}">${renderPanel(p)}</div>`
@@ -916,9 +953,14 @@ function reopenPlan(id) {
 function refreshPanel(id) {
   const panel = document.getElementById('panel-' + id);
   if (!panel) return;
-  const p = PROBLEMS.find(x => x.id === id);
-  panel.innerHTML = renderPanel(p);
-  renderTabBar();
+  const infoTab = INFO_TABS.find(t => t.id === id);
+  if (infoTab) {
+    panel.innerHTML = renderInfoPanel(infoTab);
+  } else {
+    const p = PROBLEMS.find(x => x.id === id);
+    panel.innerHTML = renderPanel(p);
+    renderTabBar();
+  }
 }
 
 function updateCounter() {
