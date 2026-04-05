@@ -62,11 +62,16 @@
   .tab-btn { flex-shrink: 0; padding: 12px 14px; border: none; background: transparent; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 500; transition: color 0.15s, border-color 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 7px; }
   .tab-btn:hover { color: var(--text); }
   .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
-  .tab-btn.tab-info { color: var(--muted); }
   .tab-btn.tab-info.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-btn.tab-problems.active { color: var(--blue); border-bottom-color: var(--blue); }
   .tab-btn.tab-closed.active { color: var(--green); border-bottom-color: var(--green); }
-  .tab-divider { width: 1px; background: var(--border); margin: 10px 4px; flex-shrink: 0; }
-  .tab-num { width: 19px; height: 19px; border-radius: 5px; background: var(--blue-dim); color: var(--blue); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  /* Sub-bar for problems */
+  .tab-bar-sub-wrap { background: var(--bg); border-bottom: 1px solid var(--border); display: none; }
+  .tab-bar-sub-wrap.visible { display: block; }
+  .tab-btn.tab-sub { font-size: 12px; padding: 8px 11px; gap: 6px; }
+  .tab-btn.tab-sub.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-btn.tab-sub.tab-closed.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab-num { width: 18px; height: 18px; border-radius: 4px; background: var(--blue-dim); color: var(--blue); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .tab-btn.tab-closed .tab-num { background: var(--green-dim); color: var(--green); }
 
   /* ── Tab content ── */
@@ -176,7 +181,10 @@
     </div>
   </header>
   <div class="tab-bar-wrap">
-    <div class="tab-bar" id="tab-bar"></div>
+    <div class="tab-bar" id="tab-bar-top"></div>
+  </div>
+  <div class="tab-bar-sub-wrap" id="tab-bar-sub-wrap">
+    <div class="tab-bar" id="tab-bar-sub"></div>
   </div>
   <main id="tab-content">
     <div style="text-align:center;padding:60px;color:var(--muted)">Ładowanie danych…</div>
@@ -592,6 +600,9 @@ Pacjent odpisuje ODWOŁUJĘ:
 // ═══════════════════════════════════════════════════════
 let state = {};
 let activeTab = 'diagnoza';
+let lastActiveProblem = 'p1';
+
+function isProblemTab(id) { return PROBLEMS.some(p => p.id === id); }
 
 function emptyState() {
   const s = {};
@@ -701,19 +712,34 @@ function renderAll() {
 }
 
 function renderTabBar() {
-  const bar = document.getElementById('tab-bar');
-  const infoHtml = INFO_TABS.map(t =>
+  const problemsActive = isProblemTab(activeTab);
+
+  // Top bar: info tabs + Problemy button
+  const topBar = document.getElementById('tab-bar-top');
+  topBar.innerHTML = INFO_TABS.map(t =>
     `<button class="tab-btn tab-info ${t.id === activeTab ? 'active' : ''}" onclick="switchTab('${t.id}')">${t.title}</button>`
-  ).join('');
-  const divider = `<div class="tab-divider"></div>`;
-  const probHtml = PROBLEMS.map((p, i) => {
-    const ps = state[p.id] || {};
-    const closedClass = ps.closed ? 'tab-closed' : '';
-    return `<button class="tab-btn ${closedClass} ${p.id === activeTab ? 'active' : ''}" onclick="switchTab('${p.id}')">
-      <span class="tab-num">${i + 1}</span>${p.title}
-    </button>`;
-  }).join('');
-  bar.innerHTML = infoHtml + divider + probHtml;
+  ).join('') +
+  `<button class="tab-btn tab-problems ${problemsActive ? 'active' : ''}" onclick="switchToProblems()">Problemy ▾</button>`;
+
+  // Sub bar: 8 problem tabs, visible only when a problem is active
+  const subWrap = document.getElementById('tab-bar-sub-wrap');
+  const subBar = document.getElementById('tab-bar-sub');
+  if (problemsActive) {
+    subWrap.classList.add('visible');
+    subBar.innerHTML = PROBLEMS.map((p, i) => {
+      const ps = state[p.id] || {};
+      const closedClass = ps.closed ? 'tab-closed' : '';
+      return `<button class="tab-btn tab-sub ${closedClass} ${p.id === activeTab ? 'active' : ''}" onclick="switchTab('${p.id}')">
+        <span class="tab-num">${i + 1}</span>${p.title}
+      </button>`;
+    }).join('');
+  } else {
+    subWrap.classList.remove('visible');
+  }
+}
+
+function switchToProblems() {
+  switchTab(lastActiveProblem);
 }
 
 function renderTabContent() {
@@ -830,6 +856,7 @@ function formatTs(ts) {
 // ═══════════════════════════════════════════════════════
 function switchTab(id) {
   activeTab = id;
+  if (isProblemTab(id)) lastActiveProblem = id;
   renderTabBar();
   document.querySelectorAll('.tab-panel').forEach(p => {
     p.classList.toggle('active', p.id === 'panel-' + id);
