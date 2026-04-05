@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnoza Operacyjna — Klinika</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card2: #20243a;
+    --border: #2a2d3e;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --blue: #4f8ef7;
+    --blue-dim: #1e3a6e;
+    --green: #22c55e;
+    --green-dim: #14532d;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Login Screen ── */
+  #login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .login-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+
+  .login-box h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .login-box p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+
+  .login-box input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+  }
+
+  .login-box input[type="password"]:focus {
+    border-color: var(--blue);
+  }
+
+  .login-box input[type="password"].error {
+    border-color: var(--red);
+    animation: shake 0.4s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  #login-error {
+    color: var(--red);
+    font-size: 13px;
+    margin-bottom: 12px;
+    min-height: 20px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.15s, transform 0.1s;
+    text-decoration: none;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-primary:hover { opacity: 0.88; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+  .btn-success {
+    background: var(--green);
+    color: #000;
+  }
+
+  .btn-success:hover { opacity: 0.88; }
+
+  .btn-danger {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* ── App ── */
+  #app { display: none; }
+
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .counter {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .counter span {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* ── Problem Card ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card.is-closed {
+    border-color: var(--green-dim);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card-header:hover { background: rgba(255,255,255,0.02); }
+
+  .problem-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue-dim);
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .is-closed .problem-num {
+    background: var(--green-dim);
+    color: var(--green);
+  }
+
+  .card-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .badge-open {
+    background: var(--blue-dim);
+    color: var(--blue);
+  }
+
+  .badge-closed {
+    background: var(--green-dim);
+    color: var(--green);
+  }
+
+  .chevron {
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .card.expanded .chevron {
+    transform: rotate(180deg);
+  }
+
+  .card-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .card.expanded .card-body {
+    display: block;
+  }
+
+  /* ── Sections inside card ── */
+  .section {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section:last-child {
+    border-bottom: none;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .section-header:hover { color: var(--text); }
+
+  .section-content {
+    display: none;
+    padding: 0 20px 20px;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .section.expanded .section-content {
+    display: block;
+  }
+
+  .section-content p { margin-bottom: 10px; }
+  .section-content p:last-child { margin-bottom: 0; }
+  .section-content strong { color: #fff; }
+  .section-content ul, .section-content ol {
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+  .section-content li { margin-bottom: 4px; }
+  .section-content code {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  /* ── Comments ── */
+  .comments-section {
+    padding: 16px 20px 20px;
+  }
+
+  .comments-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .comment-item {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .comment-author {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--blue);
+  }
+
+  .comment-ts {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .comment-text {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .no-comments {
+    color: var(--muted);
+    font-size: 13px;
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+
+  .comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .form-row input {
+    flex: 0 0 160px;
+  }
+
+  .form-row textarea {
+    flex: 1;
+  }
+
+  input[type="text"],
+  textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    padding: 9px 12px;
+    width: 100%;
+    font-family: inherit;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus {
+    border-color: var(--blue);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 72px;
+    line-height: 1.5;
+  }
+
+  /* ── Close section ── */
+  .close-section {
+    padding: 16px 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .close-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .final-comment-area {
+    margin-bottom: 12px;
+  }
+
+  .final-comment-area textarea {
+    min-height: 90px;
+  }
+
+  /* ── Brief ── */
+  .brief-section {
+    padding: 16px 20px 20px;
+    border-top: 1px solid var(--border);
+    background: rgba(34, 197, 94, 0.04);
+  }
+
+  .brief-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .brief-label span {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--green);
+  }
+
+  .brief-text {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #c8d3e0;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* ── Export Modal ── */
+  #export-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  #export-modal.open {
+    display: flex;
+  }
+
+  .modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .modal-box textarea {
+    flex: 1;
+    min-height: 300px;
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    background: var(--bg);
+    resize: none;
+  }
+
+  .modal-footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* ── Loading indicator ── */
+  .saving-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .saving-indicator.visible {
+    opacity: 1;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .form-row {
+      flex-direction: column;
+    }
+    .form-row input {
+      flex: 1;
+    }
+    .header-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Diagnoza Operacyjna</h1>
+    <p>Klinika Medycyny Estetycznej — dostęp wewnętrzny</p>
+    <input type="password" id="pwd-input" placeholder="Hasło dostępu" autocomplete="current-password">
+    <div id="login-error"></div>
+    <button class="btn btn-primary" onclick="login()">Wejdź</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════════ -->
+<div id="app">
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>Diagnoza Operacyjna — Klinika</h1>
+        <p>AI i automatyzacja — priorytety wdrożeń</p>
+      </div>
+      <div class="header-right">
+        <div class="counter">Zamknięte: <span id="closed-count">0</span>/6</div>
+        <button class="btn btn-ghost btn-sm" id="export-btn" onclick="openExport()" style="display:none">
+          ↗ Eksportuj briefe
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="cards-container">
+    <!-- Cards rendered by JS -->
+    <div style="text-align:center;padding:60px;color:var(--muted)">Ładowanie danych…</div>
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     EXPORT MODAL
+═══════════════════════════════════════════════ -->
+<div id="export-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Briefe dla Claude Code</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeExport()">✕ Zamknij</button>
+    </div>
+    <textarea id="export-textarea" readonly></textarea>
+    <div class="modal-footer">
+      <button class="btn btn-primary btn-sm" onclick="copyExport()">Kopiuj wszystko</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SAVING INDICATOR
+═══════════════════════════════════════════════ -->
+<div class="saving-indicator" id="saving-indicator">Zapisywanie…</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CONFIG — wypełnij przed deployem (uruchom setup.js)
+// ═══════════════════════════════════════════════════════
+const CONFIG = {
+  PASSWORD_HASH: '14d7bf10e51501f93b86a77e9d4fc0b0735a635bd12410780c3f324685b2bd2b',
+  JSONBIN_MASTER_KEY: '$2a$10$DKfM5HwIF4Nvy9t9yTJqX.Ea9czsyCUU3FQDlnKnuVR0rwR5PUzUa',
+  JSONBIN_ACCESS_KEY: '',
+  JSONBIN_BIN_ID: '69d29d7aaaba882197c8e320'
+};
+
+// ═══════════════════════════════════════════════════════
+//  DANE PROBLEMÓW
+// ═══════════════════════════════════════════════════════
+const PROBLEMS = [
+  {
+    id: 'p1',
+    title: 'Chaos operacyjny kalendarzy',
+    problem: `Klinika działa na dwóch równoległych systemach rezerwacji — <strong>Medfile</strong> (główny system medyczny) i <strong>Booksy</strong> (platforma dla pacjentów). Oba mają własne kalendarze, które nie są ze sobą zsynchronizowane w czasie rzeczywistym. Efekt: asystentka zapisuje pacjenta przez telefon do Medfile, a w tym samym momencie ktoś inny rezerwuje ten sam termin przez Booksy. Kolizja wychodzi na jaw dopiero przy potwierdzeniu.
+
+Medfile synchronizuje się z Google Calendar (choć wymaga to ręcznego uruchomienia każdego ranka). Booksy — prawdopodobnie też, ale nie zostało to potwierdzone.
+
+To jest według właściciela <strong>największy dzienny problem operacyjny</strong> kliniki.`,
+    solution: `<strong>Rozwiązanie zarządcze:</strong> Ustalić jedną zasadę: Medfile jest master calendar. Booksy służy tylko do samodzielnych rezerwacji online — ale każda rezerwacja z Booksy musi natychmiast trafiać do Medfile i blokować ten czas. Asystentki nie zapisują nikogo przez telefon bez sprawdzenia Google Calendar.
+
+<strong>Rozwiązanie techniczne — architektura hub:</strong>
+<ul>
+<li>Medfile → synchronizacja z Google Calendar (już istnieje, wymaga automatyzacji co godzinę)</li>
+<li>Booksy → synchronizacja z Google Calendar (do weryfikacji przez API lub Zapier/Make)</li>
+<li>Agent monitorujący Google Calendar co 5 minut — wykrywa kolizje i wysyła alert na Telegram</li>
+</ul>
+
+Jeśli Booksy nie udostępnia API — można użyć webhooków Booksy lub parsować potwierdzenia mailowe z Google Workspace.
+
+<strong>Narzędzia:</strong> n8n (self-hosted), Google Calendar API, Make.com jako backup`
+  },
+  {
+    id: 'p2',
+    title: 'Komunikacja wewnętrzna bez systemu',
+    problem: `Zadania są przekazywane ustnie — między gabinetem a recepcją, w biegu, między jednym pacjentem a drugim. Nie ma narzędzia do śledzenia, co zostało zlecone i co zostało wykonane. Komunikator grupowy (Signal) jest jeden dla całej rejestracji — wiadomości giną w strumieniu.
+
+Efekt: zadania "wypadają" — szczególnie nieregularne, jednorazowe, zlecone głosem. Zamówienia zaopatrzenia wychodzą za późno. Kontakty z pacjentami są zapominane. Właściciel odczuwa to jako brak niezawodności zespołu, choć źródłem problemu jest brak systemu.`,
+    solution: `<strong>Rozwiązanie zarządcze:</strong> Każde ustne polecenie musi być zamienione na zadanie w Asanie w ciągu 2 minut. Obowiązek leży po stronie osoby przyjmującej zadanie. Każda asystentka, zaczynając zmianę, otwiera Asanę i sprawdza swoje zadania.
+
+<strong>Rozwiązanie techniczne — agent konwersacyjny (już zbudowany):</strong>
+<ul>
+<li>Właściciel mówi do Plaud lub na Telegramie: "Zadzwoń do Pani Kowalskiej…"</li>
+<li>Agent przetwarza wiadomość głosową → tworzy zadanie w Asanie z tytułem, opisem, przypisaniem, deadlinem</li>
+<li>Asystentka dostaje powiadomienie na Telegramie</li>
+<li>Po wykonaniu: odpisuje "zrobione" → agent zamyka zadanie w Asanie</li>
+</ul>
+
+<strong>Agent Asana monitoring:</strong> Codziennie o 8:00 wysyła każdej asystentce jej listę zadań. O 18:00 wysyła właścicielowi raport: co zrobiono, co nie.
+
+<strong>Narzędzia:</strong> Agent konwersacyjny (już zbudowany) + Asana MCP (już zbudowany), n8n, Telegram Bot API`
+  },
+  {
+    id: 'p3',
+    title: 'Zbieranie opinii — nieregularne i nieskuteczne',
+    problem: `Klinika ma <strong>840 opinii 5.0</strong> łącznie na Google Business Profile, Booksy i Znany Lekarz. To mocny aktyw. Ale opinie zbierane są nieregularnie — zależy od tego, czy asystentka zapyta. Na Booksy algorytm wyszukiwania premiuje kliniki zbierające opinie <strong>kilka razy w tygodniu</strong> — przy obecnym tempie klinika traci widoczność i nowych pacjentów.
+
+Nie ma systematycznego follow-upu po wizycie z zapytaniem o samopoczucie — a to byłby naturalny punkt wejścia do prośby o opinię.`,
+    solution: `<strong>Rozwiązanie zarządcze:</strong> Podpiąć część premii asystentek pod liczbę zebranych opinii tygodniowo. Cel: minimum 3 opinie tygodniowo per lokalizacja na Booksy.
+
+<strong>Rozwiązanie techniczne — automatyczny follow-up po wizycie:</strong>
+<ul>
+<li><strong>24h po wizycie:</strong> SMS/WhatsApp z pytaniem "Jak się Pani/Pan czuje po zabiegu?" — wysłany automatycznie na podstawie danych z Medfile</li>
+<li><strong>48h po wizycie:</strong> jeśli pacjent odpowiedział pozytywnie (lub nie odpowiedział) → SMS z linkiem do opinii na Google/Booksy/Znany Lekarz</li>
+<li><strong>Odpowiedź negatywna:</strong> zamiast prośby o opinię → zadanie dla asystentki: "Oddzwoń do Pani X — niezadowolona"</li>
+</ul>
+
+Dashboard HTML: właściciel widzi tygodniową liczbę opinii per platforma, trend miesięczny, alerty.
+
+<strong>Narzędzia:</strong> n8n, Medfile API/eksport, SMS przez T-Mobile API lub WhatsApp Business API`
+  },
+  {
+    id: 'p4',
+    title: 'Social media — martwe, mimo gotowego materiału',
+    problem: `Instagram i Facebook nie były aktualizowane od początku roku. Przyczyny: brak dedykowanej osoby, choroba właściciela, problem z voice-overem do nagranych filmów, brak procesu publikacji. <strong>Materiał wideo istnieje</strong> (nagrania z kamerarzystą), ale czeka na głos właściciela.
+
+Klinika ma 840 opinii tekstowych, które mogłyby służyć jako kontent — i nikt z tego nie korzysta.`,
+    solution: `<strong>Rozwiązanie zarządcze:</strong> Rozdzielić dwa problemy: (1) produkcja treści — wymaga właściciela; (2) publikacja treści — może być w pełni zautomatyzowana. Rytm: 3 posty tygodniowo. Zanim będzie gotowy materiał wideo, kontent z opinii.
+
+<strong>Agent do contentu z opinii:</strong>
+<ul>
+<li>Co tydzień agent wybiera 3 najlepsze opinie z Booksy/Google</li>
+<li>Formatuje jako gotowe posty (grafika + caption) w spójnym szablonie</li>
+<li>Wysyła do właściciela na Telegram do zatwierdzenia jednym kliknięciem</li>
+<li>Po zatwierdzeniu — automatycznie publikuje na Instagramie i Facebooku przez Meta API</li>
+</ul>
+
+<strong>Pipeline dla istniejących filmów:</strong> ElevenLabs klonuje głos właściciela (próbka 30–60 min) → agent generuje voice-over ze skryptu → gotowy film trafia do Drive → zatwierdzenie → publikacja.
+
+<strong>Narzędzia:</strong> n8n, Meta Graph API, GPT-4 Vision, ElevenLabs, Google Drive, Telegram Bot`
+  },
+  {
+    id: 'p5',
+    title: 'Monitoring marketingu SEO — właściciel jest ślepy',
+    problem: `Klinika płaci za pozycjonowanie zewnętrznemu dostawcy. Dostawca nie raportuje proaktywnie. Właściciel nie ma czasu ani umiejętności, żeby samodzielnie czytać Google Search Console lub Analytics. Efekt: brak kontroli nad tym, czy pieniądze przynoszą efekt.`,
+    solution: `<strong>Rozwiązanie techniczne — agent raportowy (co poniedziałek rano):</strong>
+<ul>
+<li>Ściąga dane z Google Search Console API: kliknięcia, wyświetlenia, pozycja średnia, top 10 zapytań, trendy T/T</li>
+<li>Generuje prosty raport HTML — gotowy do czytania w 2 minuty</li>
+<li>Wysyła właścicielowi na Telegram i/lub email</li>
+</ul>
+
+Raport odpowiada na trzy pytania: Czy ruch rośnie? Jakie zapytania nas znajdują? Czy pozycja się poprawia?
+
+<strong>Dodatkowy element:</strong> miesięczny raport porównawczy wysyłany bezpośrednio do dostawcy SEO z pytaniem o komentarz do konkretnych liczb.
+
+<strong>Narzędzia:</strong> Google Search Console API, n8n, HTML template, Telegram Bot`
+  },
+  {
+    id: 'p6',
+    title: 'Retencja pacjentów — churn detection',
+    problem: `Medfile zawiera pełną historię wizyt per pacjent, etykiety usług i cennik. Te dane pozwalają zidentyfikować pacjentów, którzy regularnie przyjeżdżali i nagle zniknęli. Nikt tego nie analizuje. Nie ma żadnego procesu odzyskiwania takich pacjentów.`,
+    solution: `<strong>Rozwiązanie techniczne — agent analizujący dane z Medfile:</strong>
+<ul>
+<li>Identyfikuje pacjentów aktywnych (min. 2 wizyty w 12 mies.) którzy nie wrócili od 90+ dni</li>
+<li>Segmentuje według: zabiegu, wartości (łączne wydatki), ostatniej wizyty</li>
+<li>Tworzy listę w Asanie: "Pacjenci do reaktywacji — ten tydzień"</li>
+<li>Opcjonalnie: agent wysyła personalizowaną wiadomość SMS/WhatsApp: "Minęło trochę czasu od ostatniej wizyty…"</li>
+</ul>
+
+<strong>Wymaganie wstępne:</strong> jednorazowe przygotowanie eksportu z Medfile i ustalenie logiki segmentacji (jakie zabiegi, jakie progi czasowe).
+
+<strong>Narzędzia:</strong> n8n, Medfile eksport/API, Python (analiza danych), Asana, SMS API`
+  }
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let state = {};
+
+function emptyState() {
+  const s = {};
+  PROBLEMS.forEach(p => {
+    s[p.id] = { comments: [], closed: false, finalComment: '' };
+  });
+  return s;
+}
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function login() {
+  const input = document.getElementById('pwd-input');
+  const errorEl = document.getElementById('login-error');
+  const val = input.value.trim();
+  if (!val) return;
+
+  // If no hash configured, allow any password (demo mode)
+  if (!CONFIG.PASSWORD_HASH) {
+    proceedToApp();
+    return;
+  }
+
+  const hash = await sha256hex(val);
+  if (hash === CONFIG.PASSWORD_HASH) {
+    sessionStorage.setItem('auth', '1');
+    proceedToApp();
+  } else {
+    errorEl.textContent = 'Nieprawidłowe hasło';
+    input.classList.add('error');
+    setTimeout(() => input.classList.remove('error'), 500);
+  }
+}
+
+function proceedToApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadData();
+}
+
+// ═══════════════════════════════════════════════════════
+//  JSONBIN API
+// ═══════════════════════════════════════════════════════
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3/b';
+
+async function loadData() {
+  if (!CONFIG.JSONBIN_BIN_ID) {
+    // No backend configured — use localStorage
+    const saved = localStorage.getItem('gabinet-diagnoza');
+    state = saved ? JSON.parse(saved) : emptyState();
+    renderAll();
+    return;
+  }
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (CONFIG.JSONBIN_ACCESS_KEY) headers['X-Access-Key'] = CONFIG.JSONBIN_ACCESS_KEY;
+    else if (CONFIG.JSONBIN_MASTER_KEY) headers['X-Master-Key'] = CONFIG.JSONBIN_MASTER_KEY;
+
+    const res = await fetch(`${JSONBIN_BASE}/${CONFIG.JSONBIN_BIN_ID}/latest`, { headers });
+    const json = await res.json();
+    state = json.record && json.record.p1 ? json.record : emptyState();
+  } catch (e) {
+    console.warn('JSONBin load failed, falling back to localStorage', e);
+    const saved = localStorage.getItem('gabinet-diagnoza');
+    state = saved ? JSON.parse(saved) : emptyState();
+  }
+  renderAll();
+}
+
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persistData, 800);
+}
+
+async function persistData() {
+  showSaving();
+  // Always save to localStorage as backup
+  localStorage.setItem('gabinet-diagnoza', JSON.stringify(state));
+
+  if (!CONFIG.JSONBIN_BIN_ID || !CONFIG.JSONBIN_MASTER_KEY) {
+    hideSaving();
+    return;
+  }
+
+  try {
+    await fetch(`${JSONBIN_BASE}/${CONFIG.JSONBIN_BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': CONFIG.JSONBIN_MASTER_KEY
+      },
+      body: JSON.stringify(state)
+    });
+  } catch (e) {
+    console.warn('JSONBin save failed', e);
+  }
+  hideSaving();
+}
+
+function showSaving() {
+  document.getElementById('saving-indicator').classList.add('visible');
+}
+
+function hideSaving() {
+  setTimeout(() => {
+    document.getElementById('saving-indicator').classList.remove('visible');
+  }, 600);
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════
+function renderAll() {
+  const container = document.getElementById('cards-container');
+  container.innerHTML = PROBLEMS.map(p => renderCard(p)).join('');
+  updateCounter();
+}
+
+function renderCard(p) {
+  const ps = state[p.id] || { comments: [], closed: false, finalComment: '' };
+  const closedClass = ps.closed ? 'is-closed' : '';
+  const badge = ps.closed
+    ? '<span class="badge badge-closed">✓ Zamknięte</span>'
+    : '<span class="badge badge-open">Otwarte</span>';
+
+  const commentsHtml = ps.comments.length === 0
+    ? '<p class="no-comments">Brak komentarzy.</p>'
+    : ps.comments.map(c => `
+        <div class="comment-item">
+          <div class="comment-meta">
+            <span class="comment-author">${esc(c.author)}</span>
+            <span class="comment-ts">${formatTs(c.ts)}</span>
+          </div>
+          <div class="comment-text">${esc(c.text)}</div>
+        </div>`).join('');
+
+  const closeSection = ps.closed ? '' : `
+    <div class="close-section">
+      <div class="close-label">Zamknij plan</div>
+      <div class="final-comment-area">
+        <textarea
+          id="final-${p.id}"
+          placeholder="Opisz konkretnie, co agent ma automatyzować w tym rozwiązaniu — to będzie podstawą briefu dla Claude Code…"
+          onchange="updateFinalComment('${p.id}', this.value)"
+        >${esc(ps.finalComment)}</textarea>
+      </div>
+      <button class="btn btn-success btn-sm" onclick="closePlan('${p.id}')">
+        ✓ Zamknij plan i wygeneruj brief
+      </button>
+    </div>`;
+
+  const briefSection = ps.closed ? `
+    <div class="brief-section">
+      <div class="brief-label">
+        <span>Brief dla Claude Code</span>
+        <button class="btn btn-ghost btn-sm" onclick="copyBrief('${p.id}')">Kopiuj brief</button>
+      </div>
+      <div class="brief-text" id="brief-${p.id}">${esc(generateBrief(p.id))}</div>
+    </div>` : '';
+
+  return `
+  <div class="card ${closedClass}" id="card-${p.id}">
+    <div class="card-header" onclick="toggleCard('${p.id}')">
+      <div class="problem-num">${PROBLEMS.indexOf(p) + 1}</div>
+      <div class="card-title">${esc(p.title)}</div>
+      ${badge}
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+    <div class="card-body">
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          Problem
+        </div>
+        <div class="section-content">${p.problem}</div>
+      </div>
+      <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          Rozwiązanie
+        </div>
+        <div class="section-content">${p.solution}</div>
+      </div>
+      <div class="comments-section">
+        <div class="comments-label">Komentarze zespołu</div>
+        <div class="comments-list" id="comments-${p.id}">${commentsHtml}</div>
+        ${ps.closed ? '' : `
+        <div class="comment-form">
+          <div class="form-row">
+            <input type="text" id="author-${p.id}" placeholder="Twoje imię">
+            <textarea id="text-${p.id}" placeholder="Twój komentarz…" rows="2"></textarea>
+          </div>
+          <div style="display:flex;justify-content:flex-end">
+            <button class="btn btn-ghost btn-sm" onclick="addComment('${p.id}')">Dodaj komentarz</button>
+          </div>
+        </div>`}
+      </div>
+      ${closeSection}
+      ${briefSection}
+    </div>
+  </div>`;
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatTs(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    + ' ' + d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ═══════════════════════════════════════════════════════
+//  INTERACTIONS
+// ═══════════════════════════════════════════════════════
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  card.classList.toggle('expanded');
+}
+
+function toggleSection(headerEl) {
+  headerEl.closest('.section').classList.toggle('expanded');
+}
+
+function updateFinalComment(id, val) {
+  state[id].finalComment = val;
+  scheduleSave();
+}
+
+function addComment(id) {
+  const authorEl = document.getElementById('author-' + id);
+  const textEl = document.getElementById('text-' + id);
+  const author = authorEl.value.trim();
+  const text = textEl.value.trim();
+  if (!author || !text) {
+    if (!author) authorEl.style.borderColor = 'var(--red)';
+    if (!text) textEl.style.borderColor = 'var(--red)';
+    setTimeout(() => {
+      authorEl.style.borderColor = '';
+      textEl.style.borderColor = '';
+    }, 1200);
+    return;
+  }
+  state[id].comments.push({ author, text, ts: new Date().toISOString() });
+  authorEl.value = '';
+  textEl.value = '';
+  // Re-render just this card
+  const card = document.getElementById('card-' + id);
+  const wasExpanded = card.classList.contains('expanded');
+  const p = PROBLEMS.find(x => x.id === id);
+  card.outerHTML = renderCard(p);
+  const newCard = document.getElementById('card-' + id);
+  if (wasExpanded) newCard.classList.add('expanded');
+  scheduleSave();
+}
+
+function closePlan(id) {
+  const finalEl = document.getElementById('final-' + id);
+  const final = finalEl ? finalEl.value.trim() : state[id].finalComment;
+  if (!final) {
+    finalEl.style.borderColor = 'var(--red)';
+    finalEl.placeholder = 'Wymagane! Opisz fokus automatyzacji przed zamknięciem.';
+    setTimeout(() => { finalEl.style.borderColor = ''; }, 1500);
+    return;
+  }
+  state[id].finalComment = final;
+  state[id].closed = true;
+  state[id].closedAt = new Date().toISOString();
+  // Re-render card
+  const card = document.getElementById('card-' + id);
+  const p = PROBLEMS.find(x => x.id === id);
+  card.outerHTML = renderCard(p);
+  const newCard = document.getElementById('card-' + id);
+  newCard.classList.add('expanded');
+  updateCounter();
+  scheduleSave();
+}
+
+function updateCounter() {
+  const count = PROBLEMS.filter(p => state[p.id] && state[p.id].closed).length;
+  document.getElementById('closed-count').textContent = count;
+  const btn = document.getElementById('export-btn');
+  if (btn) btn.style.display = count > 0 ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+//  BRIEF GENERATION
+// ═══════════════════════════════════════════════════════
+function stripHtml(html) {
+  return html
+    .replace(/<strong>/gi, '**').replace(/<\/strong>/gi, '**')
+    .replace(/<ul>/gi, '').replace(/<\/ul>/gi, '')
+    .replace(/<ol>/gi, '').replace(/<\/ol>/gi, '')
+    .replace(/<li>/gi, '- ').replace(/<\/li>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function generateBrief(id) {
+  const p = PROBLEMS.find(x => x.id === id);
+  const ps = state[id];
+  if (!p || !ps) return '';
+
+  const commentsText = ps.comments.length > 0
+    ? ps.comments.map(c => `- ${c.author} (${formatTs(c.ts)}): ${c.text}`).join('\n')
+    : '(brak komentarzy)';
+
+  return `# Brief dla Claude Code: ${p.title}
+
+## Problem operacyjny
+${stripHtml(p.problem)}
+
+## Proponowane rozwiązanie
+${stripHtml(p.solution)}
+
+## Komentarze zespołu
+${commentsText}
+
+## Fokus automatyzacji
+${ps.finalComment}
+
+## Zadanie dla Claude Code
+Stwórz automatyzację zgodnie z powyższym rozwiązaniem, skupiając się na: ${ps.finalComment}
+
+Używaj narzędzi i integracji wymienionych w sekcji rozwiązania. Wygeneruj gotowy kod/konfigurację workflow, który można wdrożyć bez dodatkowej konfiguracji. Priorytetyzuj to, co zostało wskazane w fokusie automatyzacji powyżej.`;
+}
+
+function copyBrief(id) {
+  const text = generateBrief(id);
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector(`#card-${id} .brief-section .btn`);
+    if (btn) { btn.textContent = '✓ Skopiowano'; setTimeout(() => btn.textContent = 'Kopiuj brief', 1500); }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════════
+function openExport() {
+  const closed = PROBLEMS.filter(p => state[p.id] && state[p.id].closed);
+  const text = closed.map(p => generateBrief(p.id)).join('\n\n' + '═'.repeat(60) + '\n\n');
+  document.getElementById('export-textarea').value = text;
+  document.getElementById('export-modal').classList.add('open');
+}
+
+function closeExport() {
+  document.getElementById('export-modal').classList.remove('open');
+}
+
+function copyExport() {
+  const ta = document.getElementById('export-textarea');
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = document.querySelector('.modal-footer .btn');
+    if (btn) { btn.textContent = '✓ Skopiowano!'; setTimeout(() => btn.textContent = 'Kopiuj wszystko', 1500); }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+    login();
+  }
+  if (e.key === 'Escape') closeExport();
+});
+
+// ═══════════════════════════════════════════════════════
+//  AUTO-LOGIN (if session still active)
+// ═══════════════════════════════════════════════════════
+if (sessionStorage.getItem('auth') === '1') {
+  proceedToApp();
+} else if (!CONFIG.PASSWORD_HASH) {
+  // Demo mode: no password configured
+  proceedToApp();
+}
+</script>
+</body>
+</html>
