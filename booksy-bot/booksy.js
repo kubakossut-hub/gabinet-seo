@@ -127,59 +127,145 @@ const MONTH_MAP = {
   'lipiec': 7, 'sierpień': 8, 'wrzesień': 9, 'październik': 10, 'listopad': 11, 'grudzień': 12,
 };
 
+async function expandAllServiceCategories(page) {
+  // Booksy groups services into collapsible categories ("3 usługi", "15 usług").
+  // We need to expand them all so the Umów buttons are in DOM.
+  for (let pass = 0; pass < 5; pass++) {
+    const expanded = await page.evaluate(() => {
+      let count = 0;
+      // Strategy 1: click headers/buttons whose text matches "X usług(i)?" or "Pokaż więcej" / "Rozwiń"
+      const candidates = [...document.querySelectorAll('button, [role="button"], a, h2, h3, h4, div[class*="header" i], div[class*="category" i]')];
+      for (const el of candidates) {
+        const txt = (el.innerText || '').trim();
+        if (!txt) continue;
+        // Match "3 usługi", "15 usług", "Pokaż więcej", "Rozwiń"
+        const isCollapsedCat = /^\d+\s+usług[ai]?$/i.test(txt);
+        const isShowMore = /^(pokaż więcej|pokaz wiecej|rozwiń|rozwin|show more|view all|zobacz wszystkie)$/i.test(txt);
+        if (isCollapsedCat || isShowMore) {
+          // Avoid clicking elements way down in shadow DOM, must be visible
+          if (el.offsetParent === null) continue;
+          // Check aria-expanded — skip if already expanded
+          const expandedAttr = el.getAttribute('aria-expanded');
+          if (expandedAttr === 'true') continue;
+          el.click();
+          count++;
+        }
+      }
+      return count;
+    });
+    if (expanded === 0) break;
+    console.log(`[booksy] Expanded ${expanded} categories (pass ${pass + 1})`);
+    await page.waitForTimeout(500);
+  }
+}
+
+async function scrollPageToBottom(page) {
+  // Booksy lazy-loads — scroll through the entire page so all services render
+  await page.evaluate(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    let lastHeight = 0;
+    for (let i = 0; i < 30; i++) {
+      window.scrollBy(0, 800);
+      await sleep(150);
+      const h = document.body.scrollHeight;
+      if (h === lastHeight && i > 5) break;
+      lastHeight = h;
+    }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(500);
+}
+
 async function clickUmow(page, service, staff) {
-  // Find the correct Umów/Book button. Booksy service rows: each row has a button
-  // with text "Umów" / "Book" / "Zarezerwuj". We walk DOM to find a row matching
-  // the service name (and optionally staff name), then return a locator-index.
-  const idx = await page.evaluate(({ service, staff }) => {
-    // Collect all clickable "book" buttons by text content
+  // Make sure all services are loaded and expanded
+  await scrollPageToBottom(page);
+  await expandAllServiceCategories(page);
+  await scrollPageToBottom(page);
+  await expandAllServiceCategories(page);
+
+  // Find the correct Umów/Book button. We use a 3-tier matching:
+  //   1. exact match on service name
+  //   2. case-insensitive substring match
+  //   3. fuzzy match (all words from search appear in row)
+  const result = await page.evaluate(({ service, staff }) => {
+    const norm = (s) => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const targetNorm = norm(service);
+    const targetWords = targetNorm.split(' ').filter(w => w.length > 2);
+
+    // Collect all clickable "book" buttons
     const allBtns = [...document.querySelectorAll('button, a')];
     const bookBtns = allBtns.filter(b => {
-      const t = (b.innerText || '').trim().toLowerCase();
-      return /^(umów|umow|book|zarezerwuj|book now)$/i.test(t) ||
+      const t = norm(b.innerText);
+      return /^(umów|umow|book|zarezerwuj|book now|wybierz|select)$/i.test(t) ||
              b.getAttribute('data-testid') === 'service-button';
     });
 
-    const matchRow = (btn) => {
+    // For each book button, walk up to find smallest container holding the service name
+    const findRow = (btn) => {
       let el = btn;
+      let bestRow = null;
+      let bestScore = -1;
       for (let i = 0; i < 20; i++) {
         el = el.parentElement;
-        if (!el) return null;
-        const txt = (el.innerText || '').toLowerCase();
-        if (txt.includes(service.toLowerCase())) {
-          // Check if this container is a service "card" (has at most 1 book button)
-          const btnsInside = el.querySelectorAll('button, a');
-          const bookInside = [...btnsInside].filter(b => {
-            const t = (b.innerText || '').trim().toLowerCase();
-            return /^(umów|umow|book|zarezerwuj|book now)$/i.test(t);
-          });
-          if (bookInside.length <= 3) return el;
+        if (!el) break;
+        const txt = norm(el.innerText);
+        if (!txt) continue;
+
+        let score = -1;
+        // Tier 1: exact match on a line
+        const lines = txt.split('\n').map(l => l.trim());
+        if (lines.some(l => l === targetNorm)) score = 1000;
+        // Tier 2: substring match
+        else if (txt.includes(targetNorm)) score = 500;
+        // Tier 3: all words present
+        else if (targetWords.every(w => txt.includes(w))) score = 100;
+
+        if (score > 0) {
+          // Prefer smaller containers (closer to button) — they're more specific
+          if (bestRow === null || (el.innerText.length < bestRow.innerText.length)) {
+            bestRow = el;
+            bestScore = score;
+          }
         }
       }
-      return null;
+      return bestRow ? { row: bestRow, score: bestScore } : null;
     };
 
-    for (let i = 0; i < bookBtns.length; i++) {
-      const btn = bookBtns[i];
-      const row = matchRow(btn);
-      if (!row) continue;
-
-      if (staff) {
-        const rowTxt = (row.innerText || '').toLowerCase();
-        if (!rowTxt.includes(staff.toLowerCase())) continue;
-      }
-
-      // Tag the element so we can find it from Playwright
-      btn.setAttribute('data-booksy-target', 'true');
-      btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-      return i;
+    const matches = [];
+    for (const btn of bookBtns) {
+      const m = findRow(btn);
+      if (!m) continue;
+      if (staff && !norm(m.row.innerText).includes(norm(staff))) continue;
+      matches.push({ btn, ...m });
     }
-    return -1;
+
+    if (matches.length === 0) {
+      // Collect available service names from the page for debugging
+      const allText = document.body.innerText;
+      const serviceNameLines = allText.split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 8 && l.length < 80 && /[a-ząęłńóśźż]/i.test(l) && !/^\d/.test(l))
+        .slice(0, 50);
+      return { found: false, available: serviceNameLines, btnCount: bookBtns.length };
+    }
+
+    // Pick the highest-scoring match
+    matches.sort((a, b) => b.score - a.score);
+    const chosen = matches[0];
+    chosen.btn.setAttribute('data-booksy-target', 'true');
+    chosen.btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+    return { found: true, score: chosen.score, btnCount: bookBtns.length };
   }, { service, staff: staff || '' });
 
-  if (idx < 0) throw new Error(`Nie znaleziono usługi "${service}"${staff ? ` / pracownika "${staff}"` : ''}`);
+  if (!result.found) {
+    const sample = result.available.slice(0, 30).join(' | ');
+    throw new Error(
+      `Nie znaleziono usługi "${service}"${staff ? ` / pracownika "${staff}"` : ''}. ` +
+      `Buttons znalezione: ${result.btnCount}. Dostępne wiersze: ${sample}`
+    );
+  }
 
-  // Click via Playwright so we get proper events
+  console.log(`[booksy] Found service (score ${result.score}, ${result.btnCount} buttons total)`);
   const target = page.locator('[data-booksy-target="true"]');
   await target.first().click({ timeout: 10000 });
   console.log(`[booksy] Clicked Umów: ${service}${staff ? ' / ' + staff : ''}`);
