@@ -82,55 +82,112 @@ async function login(page) {
 
 // ─── Booking helpers ──────────────────────────────────────────
 
+async function dismissOverlays(page) {
+  // Close any auto-opened modals: location prompt, login modal, promo, etc.
+  // Booksy uses ESC-dismissable overlays and close buttons labeled "Zamknij"
+  for (let i = 0; i < 3; i++) {
+    let closed = false;
+
+    // Try ESC
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.waitForTimeout(200);
+
+    // Try close buttons
+    const closeBtns = await page.locator('button[aria-label="Zamknij" i], button[aria-label="Close" i]').all().catch(() => []);
+    for (const btn of closeBtns) {
+      if (await btn.isVisible().catch(() => false)) {
+        await btn.click().catch(() => {});
+        closed = true;
+        await page.waitForTimeout(200);
+      }
+    }
+
+    // Click X in header region if modal visible
+    const xClicked = await page.evaluate(() => {
+      const modals = [...document.querySelectorAll('[role="dialog"], [data-testid*="modal"], [class*="modal" i]')];
+      for (const m of modals) {
+        if (m.offsetParent === null) continue;
+        const btns = [...m.querySelectorAll('button')];
+        const closeBtn = btns.find(b => {
+          const txt = (b.innerText || b.getAttribute('aria-label') || '').toLowerCase();
+          return /zamknij|close|×/.test(txt) || b.querySelector('svg[class*="close" i]');
+        });
+        if (closeBtn) { closeBtn.click(); return true; }
+      }
+      return false;
+    }).catch(() => false);
+    if (xClicked) closed = true;
+
+    if (!closed) break;
+  }
+}
+
 const MONTH_MAP = {
   'styczeń': 1, 'luty': 2, 'marzec': 3, 'kwiecień': 4, 'maj': 5, 'czerwiec': 6,
   'lipiec': 7, 'sierpień': 8, 'wrzesień': 9, 'październik': 10, 'listopad': 11, 'grudzień': 12,
 };
 
 async function clickUmow(page, service, staff) {
-  // Scroll through services to find the right Umów button
-  const result = await page.evaluate(({ service, staff }) => {
-    const btns = [...document.querySelectorAll('[data-testid="service-button"]')];
+  // Find the correct Umów/Book button. Booksy service rows: each row has a button
+  // with text "Umów" / "Book" / "Zarezerwuj". We walk DOM to find a row matching
+  // the service name (and optionally staff name), then return a locator-index.
+  const idx = await page.evaluate(({ service, staff }) => {
+    // Collect all clickable "book" buttons by text content
+    const allBtns = [...document.querySelectorAll('button, a')];
+    const bookBtns = allBtns.filter(b => {
+      const t = (b.innerText || '').trim().toLowerCase();
+      return /^(umów|umow|book|zarezerwuj|book now)$/i.test(t) ||
+             b.getAttribute('data-testid') === 'service-button';
+    });
 
-    for (const btn of btns) {
-      // Walk up to find a container that has the service name
+    const matchRow = (btn) => {
       let el = btn;
-      let inService = false;
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 20; i++) {
         el = el.parentElement;
-        if (!el) break;
-        if (el.innerText?.toLowerCase().includes(service.toLowerCase())) {
-          inService = true;
-          break;
+        if (!el) return null;
+        const txt = (el.innerText || '').toLowerCase();
+        if (txt.includes(service.toLowerCase())) {
+          // Check if this container is a service "card" (has at most 1 book button)
+          const btnsInside = el.querySelectorAll('button, a');
+          const bookInside = [...btnsInside].filter(b => {
+            const t = (b.innerText || '').trim().toLowerCase();
+            return /^(umów|umow|book|zarezerwuj|book now)$/i.test(t);
+          });
+          if (bookInside.length <= 3) return el;
         }
       }
-      if (!inService) continue;
+      return null;
+    };
 
-      // No staff filter — click first matching
-      if (!staff) {
-        btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-        btn.click();
-        return `OK: ${service} (any staff)`;
+    for (let i = 0; i < bookBtns.length; i++) {
+      const btn = bookBtns[i];
+      const row = matchRow(btn);
+      if (!row) continue;
+
+      if (staff) {
+        const rowTxt = (row.innerText || '').toLowerCase();
+        if (!rowTxt.includes(staff.toLowerCase())) continue;
       }
 
-      // Staff filter — check the row near this button
-      let rowEl = btn.parentElement;
-      for (let j = 0; j < 7; j++) {
-        if (!rowEl) break;
-        if (rowEl.innerText?.toLowerCase().includes(staff.toLowerCase())) {
-          btn.scrollIntoView({ behavior: 'instant', block: 'center' });
-          btn.click();
-          return `OK: ${service} / ${staff}`;
-        }
-        rowEl = rowEl.parentElement;
-      }
+      // Tag the element so we can find it from Playwright
+      btn.setAttribute('data-booksy-target', 'true');
+      btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+      return i;
     }
-    return null;
+    return -1;
   }, { service, staff: staff || '' });
 
-  if (!result) throw new Error(`Nie znaleziono usługi "${service}"${staff ? ` / pracownika "${staff}"` : ''}`);
-  console.log(`[booksy] ${result}`);
+  if (idx < 0) throw new Error(`Nie znaleziono usługi "${service}"${staff ? ` / pracownika "${staff}"` : ''}`);
+
+  // Click via Playwright so we get proper events
+  const target = page.locator('[data-booksy-target="true"]');
+  await target.first().click({ timeout: 10000 });
+  console.log(`[booksy] Clicked Umów: ${service}${staff ? ' / ' + staff : ''}`);
   await page.waitForTimeout(1500);
+
+  // After clicking, Booksy may pop a login modal — dismiss it (guest booking)
+  await dismissOverlays(page);
+  await page.waitForTimeout(500);
 }
 
 async function navigateWeeklyCalendar(page, dateStr) {
@@ -244,15 +301,10 @@ async function bookAppointment({ businessUrl, service, date, time, staff, notes 
       await page.waitForTimeout(500);
     }
 
-    // Login if needed
-    if (!(await isLoggedIn(page))) {
-      await login(page);
-      saveSession(await context.storageState());
-      await page.goto(businessUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await page.waitForTimeout(3000);
-    }
+    // Dismiss any auto-opened modal (location, login, etc.)
+    await dismissOverlays(page);
 
-    // Find and click Umów
+    // Find and click Umów — Booksy allows guest booking, no login needed
     await clickUmow(page, service, staff);
 
     // Navigate weekly calendar to target date
