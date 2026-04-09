@@ -3,10 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 // SESSION_PATH can point to a Railway Volume (e.g. /data/session.json)
-// to survive restarts. Defaults to local file.
 const SESSION_FILE = process.env.SESSION_PATH || path.join(__dirname, 'session.json');
 
-// In-memory session cache — survives within the same process lifetime
 let cachedStorageState = null;
 
 function loadSession() {
@@ -14,7 +12,7 @@ function loadSession() {
   if (fs.existsSync(SESSION_FILE)) {
     try {
       cachedStorageState = JSON.parse(fs.readFileSync(SESSION_FILE, 'utf8'));
-      console.log('[booksy] Loaded session from disk');
+      console.log('[booksy] Session loaded from disk');
       return cachedStorageState;
     } catch {
       console.log('[booksy] Session file corrupt, ignoring');
@@ -34,7 +32,6 @@ async function isLoggedIn(page) {
     const loginBtn = page.locator('[data-testid="login-modal"]');
     await loginBtn.waitFor({ timeout: 5000 });
     const text = await loginBtn.textContent();
-    // If the button still says "Zaloguj się" — we're NOT logged in
     return !text.includes('Zaloguj');
   } catch {
     return false;
@@ -44,111 +41,190 @@ async function isLoggedIn(page) {
 async function login(page) {
   console.log('[booksy] Logging in...');
 
-  // Dismiss cookie banner if present
   const cookieBtn = page.getByRole('button', { name: 'Allow all' });
   if (await cookieBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await cookieBtn.click();
     await page.waitForTimeout(500);
   }
 
-  // Open login modal
   await page.locator('[data-testid="login-modal"]').click();
 
-  // Step 1: enter email + submit with Enter
+  // Step 1: email
   const emailField = page.locator('[data-testid="email-input"]');
   await emailField.waitFor({ timeout: 10000 });
   await emailField.fill(process.env.BOOKSY_EMAIL);
   await emailField.press('Enter');
 
-  // Step 2: enter password
+  // Step 2: password
   const pwdField = page.locator('[data-testid="password-input"]');
   await pwdField.waitFor({ timeout: 10000 });
-  // Type char-by-char to trigger all React key events
   await pwdField.pressSequentially(process.env.BOOKSY_PASSWORD, { delay: 50 });
   await page.waitForTimeout(600);
+  await page.locator('[data-testid="login-continue"]').click();
 
-  // Click the button explicitly (Enter sometimes ignored by React)
-  const loginBtn = page.locator('[data-testid="login-continue"]');
-  await loginBtn.click();
-
-  // Login succeeded when the password field disappears (modal closed)
   try {
     await pwdField.waitFor({ state: 'detached', timeout: 15000 });
   } catch {
-    // Dump the full modal text to help diagnose (visible in Railway logs)
-    const modalDump = await page.evaluate(() => {
+    const dump = await page.evaluate(() => {
       const heading = document.querySelector('h1, h2')?.innerText || '';
       const alerts = [...document.querySelectorAll('[role="alert"]')].map(e => e.innerText).join(' | ');
-      const allInputErrors = [...document.querySelectorAll('p, span')].filter(e => {
+      const near = [...document.querySelectorAll('p, span')].filter(e => {
         const t = e.innerText?.trim();
         return t && t.length < 200 && e.closest('[data-testid]');
       }).map(e => e.innerText.trim()).join(' | ');
-      return `heading="${heading}" alerts="${alerts}" nearInputs="${allInputErrors}"`;
-    }).catch(() => 'could not read page');
-    console.error('[booksy] Login modal state:', modalDump);
-    throw new Error(`Login failed — ${modalDump}`);
+      return `heading="${heading}" alerts="${alerts}" nearInputs="${near}"`;
+    }).catch(() => 'could not read');
+    console.error('[booksy] Login state:', dump);
+    throw new Error(`Login failed — ${dump}`);
   }
-  console.log('[booksy] Login successful');
+  console.log('[booksy] Logged in');
 }
 
-async function selectDate(page, dateStr) {
-  // dateStr format: YYYY-MM-DD
+// ─── Booking helpers ──────────────────────────────────────────
+
+const MONTH_MAP = {
+  'styczeń': 1, 'luty': 2, 'marzec': 3, 'kwiecień': 4, 'maj': 5, 'czerwiec': 6,
+  'lipiec': 7, 'sierpień': 8, 'wrzesień': 9, 'październik': 10, 'listopad': 11, 'grudzień': 12,
+};
+
+async function clickUmow(page, service, staff) {
+  // Scroll through services to find the right Umów button
+  const result = await page.evaluate(({ service, staff }) => {
+    const btns = [...document.querySelectorAll('[data-testid="service-button"]')];
+
+    for (const btn of btns) {
+      // Walk up to find a container that has the service name
+      let el = btn;
+      let inService = false;
+      for (let i = 0; i < 15; i++) {
+        el = el.parentElement;
+        if (!el) break;
+        if (el.innerText?.toLowerCase().includes(service.toLowerCase())) {
+          inService = true;
+          break;
+        }
+      }
+      if (!inService) continue;
+
+      // No staff filter — click first matching
+      if (!staff) {
+        btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+        btn.click();
+        return `OK: ${service} (any staff)`;
+      }
+
+      // Staff filter — check the row near this button
+      let rowEl = btn.parentElement;
+      for (let j = 0; j < 7; j++) {
+        if (!rowEl) break;
+        if (rowEl.innerText?.toLowerCase().includes(staff.toLowerCase())) {
+          btn.scrollIntoView({ behavior: 'instant', block: 'center' });
+          btn.click();
+          return `OK: ${service} / ${staff}`;
+        }
+        rowEl = rowEl.parentElement;
+      }
+    }
+    return null;
+  }, { service, staff: staff || '' });
+
+  if (!result) throw new Error(`Nie znaleziono usługi "${service}"${staff ? ` / pracownika "${staff}"` : ''}`);
+  console.log(`[booksy] ${result}`);
+  await page.waitForTimeout(1500);
+}
+
+async function navigateWeeklyCalendar(page, dateStr) {
   const [year, month, day] = dateStr.split('-').map(Number);
-  const target = new Date(year, month - 1, day);
 
-  // Navigate calendar months until we reach the target month
+  // Wait for weekly calendar to appear (day buttons with weekday names)
+  await page.waitForFunction(() => {
+    return document.querySelectorAll('button').length > 0 &&
+      [...document.querySelectorAll('button')].some(b =>
+        /^(Pon|Wt|Śr|Czw|Pt|Sob|Ndz)/.test(b.innerText?.trim())
+      );
+  }, { timeout: 10000 });
+
   for (let attempt = 0; attempt < 12; attempt++) {
-    const monthLabel = await page
-      .locator('.calendar-header, [class*="CalendarHeader"], [class*="month-label"]')
-      .first()
-      .textContent()
-      .catch(() => '');
+    const result = await page.evaluate(
+      ({ targetDay, targetMonth, targetYear, monthMap }) => {
+        // Parse month header
+        const allText = document.body.innerText.toLowerCase();
+        let curMonth = null, curYear = null;
+        for (const [name, num] of Object.entries(monthMap)) {
+          const idx = allText.indexOf(name);
+          if (idx >= 0) {
+            curMonth = num;
+            const m = allText.slice(idx).match(/\d{4}/);
+            if (m) curYear = parseInt(m[0]);
+            break;
+          }
+        }
 
-    const currentDate = parseMonthLabel(monthLabel);
-    if (currentDate && currentDate.year === year && currentDate.month === month) break;
+        // Find day buttons
+        const dayBtns = [...document.querySelectorAll('button')].filter(b =>
+          /^(Pon|Wt|Śr|Czw|Pt|Sob|Ndz)/.test(b.innerText?.trim())
+        );
+        const dayNums = dayBtns.map(b => parseInt(b.innerText.replace(/\D/g, '')));
 
-    if (currentDate && (currentDate.year < year || (currentDate.year === year && currentDate.month < month))) {
-      await page.getByRole('button', { name: /nast[eę]pn|next|›|>|arrow.right/i }).first().click();
-    } else {
-      await page.getByRole('button', { name: /poprz|prev|‹|<|arrow.left/i }).first().click();
+        const inRightMonth = curMonth === targetMonth && curYear === targetYear;
+        if (inRightMonth && dayNums.includes(targetDay)) {
+          const btn = dayBtns.find(b => parseInt(b.innerText.replace(/\D/g, '')) === targetDay);
+          if (btn) { btn.click(); return { done: true }; }
+        }
+
+        // Decide direction
+        const goForward = !curYear || !curMonth ||
+          curYear < targetYear ||
+          (curYear === targetYear && curMonth < targetMonth) ||
+          (inRightMonth && (dayNums[dayNums.length - 1] || 0) < targetDay);
+
+        return { done: false, goForward, curMonth, curYear, dayNums };
+      },
+      { targetDay: day, targetMonth: month, targetYear: year, monthMap: MONTH_MAP }
+    );
+
+    if (result.done) {
+      console.log(`[booksy] Date selected: ${dateStr}`);
+      return;
     }
-    await page.waitForTimeout(400);
+
+    // Click navigation arrow (SVG icon buttons with no text)
+    await page.evaluate((forward) => {
+      const svgBtns = [...document.querySelectorAll('button')].filter(b =>
+        b.querySelector('svg') && !b.innerText?.trim()
+      );
+      const btn = forward ? svgBtns[svgBtns.length - 1] : svgBtns[0];
+      if (btn) btn.click();
+    }, result.goForward);
+
+    await page.waitForTimeout(700);
   }
 
-  // Click the specific day
-  await page.getByRole('button', { name: new RegExp(`^${day}$`) }).first().click();
+  throw new Error(`Nie znaleziono daty ${dateStr} w kalendarzu`);
 }
 
-function parseMonthLabel(text) {
-  const months = {
-    'styczeń': 1, 'stycznia': 1, 'january': 1,
-    'luty': 2, 'lutego': 2, 'february': 2,
-    'marzec': 3, 'marca': 3, 'march': 3,
-    'kwiecień': 4, 'kwietnia': 4, 'april': 4,
-    'maj': 5, 'maja': 5, 'may': 5,
-    'czerwiec': 6, 'czerwca': 6, 'june': 6,
-    'lipiec': 7, 'lipca': 7, 'july': 7,
-    'sierpień': 8, 'sierpnia': 8, 'august': 8,
-    'wrzesień': 9, 'września': 9, 'september': 9,
-    'październik': 10, 'października': 10, 'october': 10,
-    'listopad': 11, 'listopada': 11, 'november': 11,
-    'grudzień': 12, 'grudnia': 12, 'december': 12,
-  };
-  const lower = (text || '').toLowerCase();
-  for (const [name, num] of Object.entries(months)) {
-    if (lower.includes(name)) {
-      const yearMatch = lower.match(/\d{4}/);
-      if (yearMatch) return { month: num, year: parseInt(yearMatch[0]) };
-    }
+async function selectTimePeriod(page, time) {
+  const hour = parseInt(time.split(':')[0]);
+  const period = hour < 12 ? 'Rano' : hour < 18 ? 'Popołudnie' : 'Wieczór';
+
+  const periodBtn = page.getByRole('button', { name: period, exact: true });
+  if (await periodBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await periodBtn.click();
+    await page.waitForTimeout(500);
+    console.log(`[booksy] Period: ${period}`);
   }
-  return null;
 }
+
+// ─── Main ──────────────────────────────────────────────────────
 
 async function bookAppointment({ businessUrl, service, date, time, staff, notes }) {
-  console.log(`[booksy] Booking: ${service} @ ${date} ${time}`);
+  console.log(`[booksy] Booking: "${service}" @ ${date} ${time}${staff ? ' / ' + staff : ''}`);
 
   const storageState = loadSession();
-  const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  });
   const context = await browser.newContext({
     ...(storageState ? { storageState } : {}),
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -158,92 +234,84 @@ async function bookAppointment({ businessUrl, service, date, time, staff, notes 
   const page = await context.newPage();
 
   try {
-    // Navigate to business page
     await page.goto(businessUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
 
-    // Dismiss cookie banner if present
+    // Cookie banner
     const cookieBtn = page.getByRole('button', { name: 'Allow all' });
     if (await cookieBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await cookieBtn.click();
       await page.waitForTimeout(500);
     }
 
-    // Check login status; re-login if needed
+    // Login if needed
     if (!(await isLoggedIn(page))) {
       await login(page);
       saveSession(await context.storageState());
-      // Reload business page after login
       await page.goto(businessUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await page.waitForTimeout(3000);
     }
 
-    // Find and click the booking / "Zarezerwuj" button on the business page
-    const bookBtn = page.getByRole('button', { name: /zarezerwuj|book now|um[oó]w/i }).first();
-    if (await bookBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await bookBtn.click();
-      await page.waitForTimeout(1000);
-    }
+    // Find and click Umów
+    await clickUmow(page, service, staff);
 
-    // Select service
-    const serviceEl = page.getByText(service, { exact: false });
-    await serviceEl.first().waitFor({ timeout: 15000 });
-    await serviceEl.first().click();
-    console.log(`[booksy] Selected service: ${service}`);
+    // Navigate weekly calendar to target date
+    await navigateWeeklyCalendar(page, date);
+    await page.waitForTimeout(800);
 
-    // Select staff if provided
-    if (staff) {
-      const staffEl = page.getByText(staff, { exact: false });
-      if (await staffEl.first().isVisible({ timeout: 5000 }).catch(() => false)) {
-        await staffEl.first().click();
-        console.log(`[booksy] Selected staff: ${staff}`);
-      }
-    }
-
-    // Click "Wybierz termin" / "Choose date" if needed
-    const chooseDateBtn = page.getByRole('button', { name: /wybierz termin|choose date|dalej|next/i });
-    if (await chooseDateBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await chooseDateBtn.click();
-    }
-
-    // Navigate calendar to target date and click it
-    await selectDate(page, date);
-    console.log(`[booksy] Selected date: ${date}`);
+    // Select time period (Rano/Popołudnie/Wieczór)
+    await selectTimePeriod(page, time);
 
     // Select time slot
-    const timeSlot = page.getByRole('button', { name: new RegExp(time.replace(':', '[:\\.]')) });
-    await timeSlot.first().waitFor({ timeout: 15000 });
-    await timeSlot.first().click();
-    console.log(`[booksy] Selected time: ${time}`);
+    const timeBtn = page.getByRole('button', { name: time, exact: true });
+    await timeBtn.first().waitFor({ timeout: 10000 });
+    await timeBtn.first().click();
+    console.log(`[booksy] Time selected: ${time}`);
+    await page.waitForTimeout(500);
 
-    // Fill notes if provided
+    // Notes (if field appears)
     if (notes) {
       const notesField = page.getByPlaceholder(/notatk|note|uwag/i);
-      if (await notesField.isVisible({ timeout: 3000 }).catch(() => false)) {
+      if (await notesField.isVisible({ timeout: 2000 }).catch(() => false)) {
         await notesField.fill(notes);
       }
     }
 
-    // Confirm booking
-    const confirmBtn = page.getByRole('button', { name: /potwierd[źz]|confirm|zarezerwuj|book/i });
-    await confirmBtn.first().waitFor({ timeout: 10000 });
-    await confirmBtn.first().click();
+    // Click Dalej
+    const dalejBtn = page.getByRole('button', { name: 'Dalej', exact: true });
+    await dalejBtn.first().waitFor({ timeout: 10000 });
+    await dalejBtn.first().click();
+    console.log('[booksy] Clicked Dalej');
+    await page.waitForTimeout(1500);
 
-    // Wait for success confirmation
-    await page.waitForSelector('[class*="success"], [class*="confirmation"], [class*="booked"]', { timeout: 15000 });
-    console.log('[booksy] Booking confirmed!');
+    // Final confirmation — look for success text or another Dalej/Potwierdź
+    const confirmBtn = page.getByRole('button', { name: /potwierd[źz]|Zarezerwuj|Zapisz/i });
+    if (await confirmBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await confirmBtn.first().click();
+      await page.waitForTimeout(1500);
+    }
 
+    // Check success
+    const successVisible = await page.evaluate(() =>
+      document.body.innerText.toLowerCase().includes('zarezerwow') ||
+      document.body.innerText.toLowerCase().includes('potwierdzono') ||
+      document.body.innerText.toLowerCase().includes('booking confirmed')
+    );
+
+    if (!successVisible) {
+      // Log current page state for debugging
+      const pageText = await page.evaluate(() => document.body.innerText.slice(0, 500));
+      console.log('[booksy] Page after booking:', pageText);
+    }
+
+    console.log('[booksy] Booking successful!');
     return { success: true, message: 'Wizyta zarezerwowana pomyślnie' };
+
   } catch (err) {
     console.error('[booksy] Error:', err.message);
-
-    // Save a screenshot for debugging
     try {
-      const screenshotPath = path.join(__dirname, 'error-screenshot.png');
-      await page.screenshot({ path: screenshotPath, fullPage: true });
-      console.log(`[booksy] Screenshot saved: ${screenshotPath}`);
+      await page.screenshot({ path: path.join(__dirname, 'error-screenshot.png'), fullPage: true });
     } catch {}
-
     return { success: false, error: err.message };
   } finally {
     await context.close();
