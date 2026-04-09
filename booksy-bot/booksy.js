@@ -54,19 +54,30 @@ async function login(page) {
   // Open login modal
   await page.locator('[data-testid="login-modal"]').click();
 
-  // Step 1: enter email
-  await page.locator('[data-testid="email-input"]').waitFor({ timeout: 10000 });
-  await page.locator('[data-testid="email-input"]').fill(process.env.BOOKSY_EMAIL);
-  await page.locator('[data-testid="login-continue"]').click();
+  // Step 1: enter email + submit with Enter
+  const emailField = page.locator('[data-testid="email-input"]');
+  await emailField.waitFor({ timeout: 10000 });
+  await emailField.fill(process.env.BOOKSY_EMAIL);
+  await emailField.press('Enter');
 
-  // Step 2: enter password (only for existing accounts — "Witamy ponownie" heading)
+  // Step 2: enter password + submit with Enter (more reliable than clicking button)
   const pwdField = page.locator('[data-testid="password-input"]');
   await pwdField.waitFor({ timeout: 10000 });
   await pwdField.fill(process.env.BOOKSY_PASSWORD);
-  await page.locator('[data-testid="login-continue"]').click();
+  await pwdField.press('Enter');
 
   // Login succeeded when the password field disappears (modal closed)
-  await pwdField.waitFor({ state: 'detached', timeout: 15000 });
+  try {
+    await pwdField.waitFor({ state: 'detached', timeout: 15000 });
+  } catch {
+    // Try to read any error message Booksy shows
+    const errText = await page
+      .locator('[data-testid="error-message"], [role="alert"], [class*="error"]')
+      .first()
+      .textContent({ timeout: 2000 })
+      .catch(() => '');
+    throw new Error(`Login failed: ${errText || 'modal did not close — sprawdź BOOKSY_EMAIL i BOOKSY_PASSWORD'}`);
+  }
   console.log('[booksy] Login successful');
 }
 
