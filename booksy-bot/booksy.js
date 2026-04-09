@@ -60,23 +60,33 @@ async function login(page) {
   await emailField.fill(process.env.BOOKSY_EMAIL);
   await emailField.press('Enter');
 
-  // Step 2: enter password + submit with Enter (more reliable than clicking button)
+  // Step 2: enter password
   const pwdField = page.locator('[data-testid="password-input"]');
   await pwdField.waitFor({ timeout: 10000 });
-  await pwdField.fill(process.env.BOOKSY_PASSWORD);
-  await pwdField.press('Enter');
+  // Type char-by-char to trigger all React key events
+  await pwdField.pressSequentially(process.env.BOOKSY_PASSWORD, { delay: 50 });
+  await page.waitForTimeout(600);
+
+  // Click the button explicitly (Enter sometimes ignored by React)
+  const loginBtn = page.locator('[data-testid="login-continue"]');
+  await loginBtn.click();
 
   // Login succeeded when the password field disappears (modal closed)
   try {
     await pwdField.waitFor({ state: 'detached', timeout: 15000 });
   } catch {
-    // Try to read any error message Booksy shows
-    const errText = await page
-      .locator('[data-testid="error-message"], [role="alert"], [class*="error"]')
-      .first()
-      .textContent({ timeout: 2000 })
-      .catch(() => '');
-    throw new Error(`Login failed: ${errText || 'modal did not close — sprawdź BOOKSY_EMAIL i BOOKSY_PASSWORD'}`);
+    // Dump the full modal text to help diagnose (visible in Railway logs)
+    const modalDump = await page.evaluate(() => {
+      const heading = document.querySelector('h1, h2')?.innerText || '';
+      const alerts = [...document.querySelectorAll('[role="alert"]')].map(e => e.innerText).join(' | ');
+      const allInputErrors = [...document.querySelectorAll('p, span')].filter(e => {
+        const t = e.innerText?.trim();
+        return t && t.length < 200 && e.closest('[data-testid]');
+      }).map(e => e.innerText.trim()).join(' | ');
+      return `heading="${heading}" alerts="${alerts}" nearInputs="${allInputErrors}"`;
+    }).catch(() => 'could not read page');
+    console.error('[booksy] Login modal state:', modalDump);
+    throw new Error(`Login failed — ${modalDump}`);
   }
   console.log('[booksy] Login successful');
 }
