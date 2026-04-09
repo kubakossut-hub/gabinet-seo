@@ -1,0 +1,11 @@
+# Base image already has Chromium + system deps pre-installed
+FROM mcr.microsoft.com/playwright:v1.44.0-jammy
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY . .
+
+CMD ["node", "server.js"]
