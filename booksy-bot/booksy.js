@@ -41,7 +41,8 @@ async function isLoggedIn(page) {
 
 async function login(page) {
   console.log('[booksy] Logging in...');
-  await page.goto('https://booksy.com/pl-pl/login', { waitUntil: 'networkidle' });
+  await page.goto('https://booksy.com/pl-pl/login', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(2000);
 
   // Dismiss cookie banner if present
   const cookieBtn = page.getByRole('button', { name: /akceptuj|zgadzam się|accept/i });
@@ -131,12 +132,15 @@ async function bookAppointment({ businessUrl, service, date, time, staff, notes 
 
   try {
     // Navigate to business page
-    await page.goto(businessUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(businessUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    // Wait for React to hydrate
+    await page.waitForTimeout(3000);
 
     // Check login status; re-login if needed
     if (!(await isLoggedIn(page))) {
       await login(page);
-      await page.goto(businessUrl, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.goto(businessUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForTimeout(3000);
       saveSession(await context.storageState());
     }
 
