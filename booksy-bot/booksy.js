@@ -59,19 +59,14 @@ async function login(page) {
   await page.locator('[data-testid="email-input"]').fill(process.env.BOOKSY_EMAIL);
   await page.locator('[data-testid="login-continue"]').click();
 
-  // Step 2: enter password
-  await page.locator('[data-testid="password-input"]').waitFor({ timeout: 10000 });
-  await page.locator('[data-testid="password-input"]').fill(process.env.BOOKSY_PASSWORD);
+  // Step 2: enter password (only for existing accounts — "Witamy ponownie" heading)
+  const pwdField = page.locator('[data-testid="password-input"]');
+  await pwdField.waitFor({ timeout: 10000 });
+  await pwdField.fill(process.env.BOOKSY_PASSWORD);
   await page.locator('[data-testid="login-continue"]').click();
 
-  // Wait until "Zaloguj się" disappears from the header button → login OK
-  await page.waitForFunction(
-    () => {
-      const btn = document.querySelector('[data-testid="login-modal"]');
-      return btn && !btn.textContent.includes('Zaloguj');
-    },
-    { timeout: 15000 }
-  );
+  // Login succeeded when the password field disappears (modal closed)
+  await pwdField.waitFor({ state: 'detached', timeout: 15000 });
   console.log('[booksy] Login successful');
 }
 
