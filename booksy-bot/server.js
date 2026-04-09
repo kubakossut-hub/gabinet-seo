@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { bookAppointment } = require('./booksy');
+const { bookAppointment, saveSession } = require('./booksy');
 
 const app = express();
 app.use(express.json());
@@ -46,6 +46,19 @@ app.post('/book', async (req, res) => {
   );
 
   res.status(result.success ? 200 : 500).json(result);
+});
+
+app.post('/set-session', (req, res) => {
+  const { secret, storageState } = req.body || {};
+  if (!process.env.WEBHOOK_SECRET || secret !== process.env.WEBHOOK_SECRET) {
+    return res.status(401).json({ success: false, error: 'Invalid secret' });
+  }
+  if (!storageState) {
+    return res.status(400).json({ success: false, error: 'Missing storageState' });
+  }
+  saveSession(storageState);
+  console.log('[server] Session updated via /set-session');
+  res.json({ success: true, message: 'Session saved' });
 });
 
 const port = process.env.PORT || 3000;

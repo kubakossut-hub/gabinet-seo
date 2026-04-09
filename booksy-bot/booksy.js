@@ -319,4 +319,4 @@ async function bookAppointment({ businessUrl, service, date, time, staff, notes 
   }
 }
 
-module.exports = { bookAppointment };
+module.exports = { bookAppointment, saveSession };
