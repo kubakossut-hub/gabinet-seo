@@ -31,9 +31,11 @@ function saveSession(storageState) {
 
 async function isLoggedIn(page) {
   try {
-    // Booksy shows user avatar/initials in header when logged in
-    await page.waitForSelector('[data-testid="user-menu"], .user-avatar, [aria-label*="konto"], [aria-label*="profil"]', { timeout: 5000 });
-    return true;
+    const loginBtn = page.locator('[data-testid="login-modal"]');
+    await loginBtn.waitFor({ timeout: 5000 });
+    const text = await loginBtn.textContent();
+    // If the button still says "Zaloguj się" — we're NOT logged in
+    return !text.includes('Zaloguj');
   } catch {
     return false;
   }
@@ -41,26 +43,35 @@ async function isLoggedIn(page) {
 
 async function login(page) {
   console.log('[booksy] Logging in...');
-  await page.goto('https://booksy.com/pl-pl/login', { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(2000);
 
   // Dismiss cookie banner if present
-  const cookieBtn = page.getByRole('button', { name: /akceptuj|zgadzam się|accept/i });
-  if (await cookieBtn.isVisible().catch(() => false)) {
+  const cookieBtn = page.getByRole('button', { name: 'Allow all' });
+  if (await cookieBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
     await cookieBtn.click();
+    await page.waitForTimeout(500);
   }
 
-  // Fill email
-  await page.getByLabel(/e-?mail/i).fill(process.env.BOOKSY_EMAIL);
+  // Open login modal
+  await page.locator('[data-testid="login-modal"]').click();
 
-  // Fill password
-  await page.getByLabel(/has[łl]o|password/i).fill(process.env.BOOKSY_PASSWORD);
+  // Step 1: enter email
+  await page.locator('[data-testid="email-input"]').waitFor({ timeout: 10000 });
+  await page.locator('[data-testid="email-input"]').fill(process.env.BOOKSY_EMAIL);
+  await page.locator('[data-testid="login-continue"]').click();
 
-  // Submit
-  await page.getByRole('button', { name: /zaloguj|log in/i }).click();
+  // Step 2: enter password
+  await page.locator('[data-testid="password-input"]').waitFor({ timeout: 10000 });
+  await page.locator('[data-testid="password-input"]').fill(process.env.BOOKSY_PASSWORD);
+  await page.locator('[data-testid="login-continue"]').click();
 
-  // Wait for redirect away from login page
-  await page.waitForURL(url => !url.includes('/login'), { timeout: 15000 });
+  // Wait until "Zaloguj się" disappears from the header button → login OK
+  await page.waitForFunction(
+    () => {
+      const btn = document.querySelector('[data-testid="login-modal"]');
+      return btn && !btn.textContent.includes('Zaloguj');
+    },
+    { timeout: 15000 }
+  );
   console.log('[booksy] Login successful');
 }
 
@@ -133,21 +144,22 @@ async function bookAppointment({ businessUrl, service, date, time, staff, notes 
   try {
     // Navigate to business page
     await page.goto(businessUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    // Wait for React to hydrate
     await page.waitForTimeout(3000);
+
+    // Dismiss cookie banner if present
+    const cookieBtn = page.getByRole('button', { name: 'Allow all' });
+    if (await cookieBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await cookieBtn.click();
+      await page.waitForTimeout(500);
+    }
 
     // Check login status; re-login if needed
     if (!(await isLoggedIn(page))) {
       await login(page);
+      saveSession(await context.storageState());
+      // Reload business page after login
       await page.goto(businessUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await page.waitForTimeout(3000);
-      saveSession(await context.storageState());
-    }
-
-    // Dismiss cookie banner if present
-    const cookieBtn = page.getByRole('button', { name: /akceptuj|zgadzam się|accept/i });
-    if (await cookieBtn.isVisible().catch(() => false)) {
-      await cookieBtn.click();
     }
 
     // Find and click the booking / "Zarezerwuj" button on the business page
