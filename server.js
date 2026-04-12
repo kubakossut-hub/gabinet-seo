@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 
+app.set('trust proxy', 1); // Required for secure cookies behind Railway / Heroku proxy
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
