@@ -975,20 +975,8 @@ function copyEmailToClipboard() {
 function openInMailClient() {
   const to      = document.getElementById('emailTo').value || '';
   const subject = encodeURIComponent(document.getElementById('emailSubject').value || '');
-  const body    = document.getElementById('emailBody').value || '';
-
-  // mailto: URI body has ~2000-char browser limit — copy full body to clipboard instead
-  navigator.clipboard.writeText(body).catch(() => {});
-
-  // Open mail client with To + Subject pre-filled only
-  const a = document.createElement('a');
-  a.href = `mailto:${encodeURIComponent(to)}?subject=${subject}`;
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  toast('Treść skopiowana do schowka — wklej ją do maila (Ctrl+V / Cmd+V)', 'success');
+  const body    = encodeURIComponent(document.getElementById('emailBody').value || '');
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${subject}&body=${body}`;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
