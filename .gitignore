@@ -3,6 +3,7 @@ node_modules/
 data/users.json
 data/spend.json
 data/supplier.json
+data/goals.json
 data/cache/
 data/google-service-account.json
 .env

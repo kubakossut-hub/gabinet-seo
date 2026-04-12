@@ -191,6 +191,7 @@ function loadTab(tab) {
   else if (tab === 'devices')  loadDevices();
   else if (tab === 'chart')    loadChart();
   else if (tab === 'supplier') loadSupplier();
+  else if (tab === 'goals')    loadGoals();
 }
 
 // ── API helper ─────────────────────────────────────────────────────────────
@@ -255,6 +256,11 @@ const HELP_TEXTS = {
     title: 'Czy SEO się opłaca?',
     body: 'Porównujemy miesięczne wydatki na SEO (agencja + narzędzia) z szacowaną wartością ruchu organicznego.\n\nWartość organiczna = liczba sesji × średnia cena kliknięcia w Google Ads. Jeśli za te wizyty musiałbyś płacić reklamami, tyle by Cię to kosztowało.\n\nROI × 2 = za każdą wydaną złotówkę otrzymujesz wartość 2 zł.',
     tip: '💡 Ustaw realny średni CPC w panelu admina, żeby obliczenia były dokładniejsze.'
+  },
+  goals: {
+    title: 'Cele współpracy z agencją',
+    body: 'To Twoja lista mierzalnych wymagań wobec agencji SEO. Każdy cel jest automatycznie sprawdzany na podstawie danych z Google.\n\n✅ Zielony = cel zrealizowany\n🟡 Żółty = blisko celu (≥80%)\n🔴 Czerwony = cel nie osiągnięty\n\nAdmin definiuje cele w panelu admina. Możesz dodać np. "fraza botoks warszawa na pozycji ≤ 5" albo "co najmniej 5 fraz w Top 10".',
+    tip: '💡 Pokaż agencji te cele podczas negocjacji umowy — zrozumieją że śledzisz wyniki automatycznie.'
   }
 };
 
@@ -719,6 +725,85 @@ function renderSpend({ entries, avgCpc }) {
       Wartość organiczna = liczba sesji organicznych × średni CPC (${avgCpc} zł).
       Aktualizuj CPC w panelu admina → Konfiguracja Google.
     </p>`;
+}
+
+// ── Goals ──────────────────────────────────────────────────────────────────
+
+async function loadGoals() {
+  const el = document.getElementById('goalsContent');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> Oceniam cele…</div>';
+  try {
+    const { goals } = await apiFetch('/seo/api/goals' + getApiParams());
+    renderGoals(goals, el);
+  } catch (e) {
+    el.innerHTML = `<div class="empty-state"><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderGoals(goals, el) {
+  if (!goals || !goals.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="icon">🎯</div>
+      <p>Brak zdefiniowanych celów.<br>
+      ${currentUser?.role === 'admin'
+        ? 'Dodaj cele w <a href="/seo/admin">panelu admina</a> → sekcja „Cele współpracy".'
+        : 'Poproś administratora o skonfigurowanie celów współpracy z agencją.'}</p>
+    </div>`;
+    return;
+  }
+
+  const counts = { ok: 0, warn: 0, fail: 0, unknown: 0 };
+  goals.forEach(g => { counts[g.status] = (counts[g.status] || 0) + 1; });
+
+  const summary = `
+    <div class="goals-summary">
+      <div class="goals-summary-stat"><div class="num num-ok">${counts.ok}</div><div class="lbl">Zrealizowane</div></div>
+      <div class="goals-summary-stat"><div class="num num-warn">${counts.warn}</div><div class="lbl">Blisko celu</div></div>
+      <div class="goals-summary-stat"><div class="num num-fail">${counts.fail}</div><div class="lbl">Niezrealizowane</div></div>
+      <div class="goals-summary-stat"><div class="num num-gray">${goals.length}</div><div class="lbl">Łącznie</div></div>
+    </div>`;
+
+  const cards = goals.map(g => {
+    const statusLabel = { ok: '✓ Zrealizowany', warn: '~ Blisko celu', fail: '✗ Niezrealizowany', unknown: '? Brak danych' };
+    const barClass    = { ok: 'bar-ok', warn: 'bar-warn', fail: 'bar-fail', unknown: 'bar-unknown' };
+    const priorityClass = { high: 'goal-priority-high', medium: 'goal-priority-medium', low: 'goal-priority-low' };
+    const priorityLabel = { high: 'Wysoki', medium: 'Średni', low: 'Niski' };
+
+    const currentFmt = g.current === null ? '—'
+      : g.type === 'traffic_growth' ? `${g.current > 0 ? '+' : ''}${g.current}%`
+      : g.type === 'keyword_position' ? `poz. ${typeof g.current === 'number' ? g.current.toFixed(1) : g.current}`
+      : g.type === 'keyword_ctr' ? `${g.current}%`
+      : Number(g.current).toLocaleString('pl');
+
+    const targetFmt = g.target === null ? '—'
+      : g.type === 'traffic_growth' ? `+${g.target}%`
+      : g.type === 'keyword_position' ? `≤ poz. ${g.target}`
+      : g.type === 'keyword_ctr' ? `≥ ${g.target}%`
+      : `≥ ${Number(g.target).toLocaleString('pl')}${g.unit ? ' ' + g.unit : ''}`;
+
+    const currentColor = g.status === 'ok' ? 'var(--green)' : g.status === 'warn' ? 'var(--yellow)' : g.status === 'fail' ? 'var(--red)' : 'var(--text-dim)';
+
+    return `<div class="goal-card status-${g.status}">
+      <div class="goal-card-header">
+        <div class="goal-desc">${esc(g.desc || g.type)}</div>
+        <span class="goal-priority ${priorityClass[g.priority] || ''}">${priorityLabel[g.priority] || g.priority}</span>
+      </div>
+      <div class="goal-values">
+        <span class="goal-current" style="color:${currentColor}">${currentFmt}</span>
+        <span class="goal-target">cel: ${targetFmt}</span>
+      </div>
+      <div class="goal-bar-wrap">
+        <div class="goal-bar ${barClass[g.status] || 'bar-unknown'}" style="width:${g.progress || 0}%"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;color:${currentColor};font-weight:600">${statusLabel[g.status] || ''}</span>
+        <span style="font-size:11px;color:var(--text-muted)">${g.progress ?? 0}%</span>
+      </div>
+      ${g.note ? `<div class="goal-note">${esc(g.note)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  el.innerHTML = summary + `<div class="goals-grid">${cards}</div>`;
 }
 
 // ── Email draft ────────────────────────────────────────────────────────────

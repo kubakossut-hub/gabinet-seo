@@ -7,6 +7,7 @@ const auth = require('./auth');
 const data = require('./data');
 const cache = require('./cache');
 const google = require('./google');
+const { evaluateGoals, GOAL_TYPES } = require('./goals');
 
 // ── Session ────────────────────────────────────────────────────────────────
 
@@ -187,6 +188,51 @@ router.put('/api/admin/supplier/:month', auth.requireAdmin, (req, res) => {
 router.post('/api/admin/cache/clear', auth.requireAdmin, (req, res) => {
   cache.clear();
   res.json({ ok: true, message: 'Cache wyczyszczony' });
+});
+
+// ── Goals API ──────────────────────────────────────────────────────────────
+
+// All authenticated users can read evaluated goals
+router.get('/api/goals', auth.requireAuth, async (req, res) => {
+  try {
+    const { goals } = data.getGoals();
+    const evaluated = await evaluateGoals(goals, parsePeriod(req));
+    res.json({ goals: evaluated });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Goal type definitions (for admin form)
+router.get('/api/admin/goal-types', auth.requireAdmin, (req, res) => {
+  const types = Object.entries(GOAL_TYPES).map(([key, t]) => ({
+    key, label: t.label, hint: t.hint, fields: t.fields
+  }));
+  res.json({ types });
+});
+
+// Create goal
+router.post('/api/admin/goals', auth.requireAdmin, (req, res) => {
+  const { type, params, priority, note } = req.body || {};
+  if (!type || !GOAL_TYPES[type]) return res.status(400).json({ error: 'Nieznany typ celu' });
+  try {
+    const id = data.addGoal({ type, params: params || {}, priority: priority || 'medium', note: note || '' });
+    res.json({ ok: true, id });
+  } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
+// Update goal
+router.put('/api/admin/goals/:id', auth.requireAdmin, (req, res) => {
+  try {
+    data.updateGoal(req.params.id, req.body || {});
+    res.json({ ok: true });
+  } catch (e) { res.status(404).json({ error: e.message }); }
+});
+
+// Delete goal
+router.delete('/api/admin/goals/:id', auth.requireAdmin, (req, res) => {
+  try {
+    data.deleteGoal(req.params.id);
+    res.json({ ok: true });
+  } catch (e) { res.status(404).json({ error: e.message }); }
 });
 
 // ── First-run check ────────────────────────────────────────────────────────

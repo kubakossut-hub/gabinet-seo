@@ -137,9 +137,42 @@ function saveSupplierEntry(month, entry) {
   writeJSON('supplier.json', data);
 }
 
+// ── Goals ──────────────────────────────────────────────────────────────────
+
+function getGoals() {
+  return readJSON('goals.json', { goals: [] });
+}
+
+function saveGoals(data) {
+  writeJSON('goals.json', data);
+}
+
+function addGoal(goal) {
+  const data = getGoals();
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  data.goals.push({ id, ...goal, createdAt: new Date().toISOString() });
+  saveGoals(data);
+  return id;
+}
+
+function updateGoal(id, updates) {
+  const data = getGoals();
+  const goal = data.goals.find(g => g.id === id);
+  if (!goal) throw new Error('Cel nie istnieje');
+  Object.assign(goal, updates, { updatedAt: new Date().toISOString() });
+  saveGoals(data);
+}
+
+function deleteGoal(id) {
+  const data = getGoals();
+  data.goals = data.goals.filter(g => g.id !== id);
+  saveGoals(data);
+}
+
 module.exports = {
   initUsers, findUser, getUsers, saveUsers, changePassword, createUser, deleteUser,
   getConfig, saveConfig,
   getSpend, saveSpendEntry,
-  getSupplier, saveSupplierEntry
+  getSupplier, saveSupplierEntry,
+  getGoals, saveGoals, addGoal, updateGoal, deleteGoal
 };

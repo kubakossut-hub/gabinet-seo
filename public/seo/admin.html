@@ -191,7 +191,59 @@
     <div style="margin-top:18px" id="kpiList"></div>
   </div>
 
-  <!-- ── 6. Cache ────────────────────────────────────────────────────── -->
+  <!-- ── 6. Cele Agencji ───────────────────────────────────────────── -->
+  <div class="section-card">
+    <h2>🎯 Cele współpracy z agencją SEO</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px">
+      Zdefiniuj mierzalne cele kontraktu SEO. Dashboard automatycznie sprawdza ich realizację na podstawie danych z Google Search Console i Analytics.
+    </p>
+
+    <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px;font-family:var(--font-display)">
+      Dodaj nowy cel
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Typ celu</label>
+        <select id="goalType" onchange="renderGoalFields()" class="goal-type-select">
+          <option value="">— wybierz typ celu —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Priorytet</label>
+        <select id="goalPriority">
+          <option value="high">🔴 Wysoki</option>
+          <option value="medium" selected>🟡 Średni</option>
+          <option value="low">⚪ Niski</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="goalHint" class="notice" style="display:none;margin-bottom:12px"></div>
+    <div id="goalParamsForm" class="goal-params-form" style="display:none"></div>
+
+    <div class="form-group">
+      <label>Dodatkowa notatka (opcjonalnie)</label>
+      <input type="text" id="goalNote" placeholder="np. Cel z umowy §4.2">
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" onclick="addGoalAdmin()" id="addGoalBtn" disabled>Dodaj cel</button>
+    </div>
+
+    <div id="goalSuccessMsg" class="success-msg"></div>
+
+    <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px;font-family:var(--font-display)">
+        Zdefiniowane cele
+      </div>
+      <div id="adminGoalList" class="admin-goal-list">
+        <p style="font-size:13px;color:var(--text-muted)">Ładowanie…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 7. Cache ────────────────────────────────────────────────────── -->
   <div class="section-card">
     <h2>🗄️ Cache danych Google</h2>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
@@ -216,7 +268,7 @@ async function init() {
     document.getElementById('userInfo').textContent = me.username;
   } catch { window.location.href = '/seo/login'; return; }
 
-  await Promise.all([loadUsers(), loadConfig(), loadSpend(), loadKpiList()]);
+  await Promise.all([loadUsers(), loadConfig(), loadSpend(), loadKpiList(), loadGoalTypes(), loadAdminGoals()]);
 
   const today = new Date().toISOString().slice(0, 7);
   document.getElementById('spendMonth').value = today;
@@ -449,6 +501,148 @@ async function saveKpi() {
     showMsg('kpiSuccessMsg', 'Ocena KPI zapisana.');
     await loadKpiList();
   } catch (e) { showMsg('kpiSuccessMsg', e.message, true); }
+}
+
+// ── Goals ─────────────────────────────────────────────────────────────────
+
+let goalTypes = [];
+let trackedKeywordsForGoals = [];
+
+async function loadGoalTypes() {
+  try {
+    const res = await apiFetch('/seo/api/admin/goal-types');
+    goalTypes = res.types;
+    const cfg = await apiFetch('/seo/api/admin/config');
+    trackedKeywordsForGoals = cfg.trackedKeywords || [];
+
+    const sel = document.getElementById('goalType');
+    sel.innerHTML = '<option value="">— wybierz typ celu —</option>' +
+      goalTypes.map(t => `<option value="${esc(t.key)}">${esc(t.label)}</option>`).join('');
+  } catch {}
+}
+
+function renderGoalFields() {
+  const type = document.getElementById('goalType').value;
+  const paramsForm = document.getElementById('goalParamsForm');
+  const hint = document.getElementById('goalHint');
+  const addBtn = document.getElementById('addGoalBtn');
+
+  if (!type) {
+    paramsForm.style.display = 'none';
+    hint.style.display = 'none';
+    addBtn.disabled = true;
+    return;
+  }
+
+  const t = goalTypes.find(g => g.key === type);
+  if (!t) return;
+
+  hint.textContent = t.hint || '';
+  hint.style.display = t.hint ? '' : 'none';
+  addBtn.disabled = false;
+
+  paramsForm.style.display = '';
+  paramsForm.innerHTML = t.fields.map(f => {
+    let input;
+    if (f.type === 'keyword-select') {
+      input = `<select id="gp_${esc(f.key)}" style="width:100%">
+        ${trackedKeywordsForGoals.map(kw => `<option value="${esc(kw)}">${esc(kw)}</option>`).join('')}
+      </select>`;
+    } else if (f.type === 'select') {
+      input = `<select id="gp_${esc(f.key)}" style="width:100%">
+        ${(f.options || []).map(o => `<option value="${o}">Top ${o}</option>`).join('')}
+      </select>`;
+    } else {
+      const attrs = [
+        f.min !== undefined ? `min="${f.min}"` : '',
+        f.max !== undefined ? `max="${f.max}"` : '',
+        f.step !== undefined ? `step="${f.step}"` : '',
+        f.placeholder ? `placeholder="${esc(f.placeholder)}"` : ''
+      ].filter(Boolean).join(' ');
+      input = `<input type="number" id="gp_${esc(f.key)}" ${attrs} style="width:100%">`;
+    }
+    return `<div class="form-group" style="margin-bottom:0">
+      <label>${esc(f.label)}</label>
+      ${input}
+    </div>`;
+  }).join('');
+}
+
+async function addGoalAdmin() {
+  const type = document.getElementById('goalType').value;
+  if (!type) return;
+  const t = goalTypes.find(g => g.key === type);
+  if (!t) return;
+
+  const params = {};
+  for (const f of t.fields) {
+    const el = document.getElementById(`gp_${f.key}`);
+    if (el) params[f.key] = el.value;
+  }
+
+  const priority = document.getElementById('goalPriority').value;
+  const note     = document.getElementById('goalNote').value.trim();
+
+  try {
+    await apiFetch('/seo/api/admin/goals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, params, priority, note })
+    });
+    showMsg('goalSuccessMsg', 'Cel dodany.');
+    document.getElementById('goalType').value = '';
+    document.getElementById('goalNote').value = '';
+    renderGoalFields();
+    await loadAdminGoals();
+  } catch (e) { showMsg('goalSuccessMsg', e.message, true); }
+}
+
+async function loadAdminGoals() {
+  try {
+    const { goals } = await apiFetch('/seo/api/goals');
+    const container = document.getElementById('adminGoalList');
+    if (!goals.length) {
+      container.innerHTML = '<p style="font-size:13px;color:var(--text-muted)">Brak zdefiniowanych celów.</p>';
+      return;
+    }
+
+    const priorityLabel = { high: '🔴 Wysoki', medium: '🟡 Średni', low: '⚪ Niski' };
+    const statusLabel   = { ok: '✓', warn: '~', fail: '✗', unknown: '?' };
+    const statusColor   = { ok: 'var(--green)', warn: 'var(--yellow)', fail: 'var(--red)', unknown: 'var(--text-muted)' };
+
+    container.innerHTML = goals.map(g => `
+      <div class="admin-goal-item">
+        <div class="goal-info">
+          <strong style="color:${statusColor[g.status] || 'var(--text)'}">
+            ${statusLabel[g.status] || '?'} ${esc(g.desc || g.type)}
+          </strong>
+          <div class="meta">
+            ${priorityLabel[g.priority] || g.priority}
+            ${g.current !== null ? ` · Aktualnie: ${formatGoalValue(g)}` : ''}
+            ${g.target !== null ? ` · Cel: ${g.target}${g.unit ? ' ' + g.unit : ''}` : ''}
+            ${g.note ? ` · ${esc(g.note)}` : ''}
+          </div>
+        </div>
+        <button class="btn-danger" onclick="deleteGoalAdmin('${esc(g.id)}')">Usuń</button>
+      </div>`).join('');
+  } catch {}
+}
+
+function formatGoalValue(g) {
+  if (g.current === null) return '—';
+  if (g.type === 'traffic_growth') return `${g.current > 0 ? '+' : ''}${g.current}%`;
+  if (g.type === 'keyword_position') return `poz. ${g.current?.toFixed ? g.current.toFixed(1) : g.current}`;
+  if (g.type === 'keyword_ctr') return `${g.current}%`;
+  return String(Math.round(g.current)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+async function deleteGoalAdmin(id) {
+  if (!confirm('Usunąć ten cel?')) return;
+  try {
+    await apiFetch(`/seo/api/admin/goals/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    await loadAdminGoals();
+    toast('Cel usunięty', 'success');
+  } catch (e) { toast(e.message, 'error'); }
 }
 
 // ── Cache ─────────────────────────────────────────────────────────────────
