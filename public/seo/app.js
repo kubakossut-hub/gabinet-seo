@@ -559,6 +559,8 @@ async function loadChart() {
     document.getElementById('chartLoading').style.display = 'none';
     if (d.error) { document.getElementById('googleWarnChart').style.display = ''; return; }
     if (!d.weeks || !d.weeks.length) return;
+    const lbl = period.from ? `${period.from} – ${period.to}` : `ostatnie ${period.days || 28} dni`;
+    document.getElementById('chartPeriodLabel').textContent = lbl;
     const ctx = document.getElementById('mainChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
     chartInstance = new Chart(ctx, {
@@ -588,8 +590,8 @@ async function loadChart() {
         ...chartOptions(),
         scales: {
           x: { grid: { color: 'rgba(30,42,61,.8)' }, ticks: { color: '#4b5e78', maxTicksLimit: 8 } },
-          y1: { type: 'linear', position: 'left',  grid: { color: 'rgba(30,42,61,.8)' }, ticks: { color: '#3b82f6' }, title: { display: true, text: 'Wyświetlenia', color: '#4b5e78' } },
-          y2: { type: 'linear', position: 'right', grid: { drawOnChartArea: false },     ticks: { color: '#10b981' }, title: { display: true, text: 'Kliknięcia',   color: '#4b5e78' } }
+          y1: { type: 'linear', position: 'left',  beginAtZero: true, grid: { color: 'rgba(30,42,61,.8)' }, ticks: { color: '#3b82f6' }, title: { display: true, text: 'Wyświetlenia', color: '#4b5e78' } },
+          y2: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false },     ticks: { color: '#10b981' }, title: { display: true, text: 'Kliknięcia',   color: '#4b5e78' } }
         }
       }
     });
@@ -617,6 +619,7 @@ function chartOptions(yLabel) {
     scales: {
       x: { grid: { color: 'rgba(30,42,61,.8)' }, ticks: { color: '#4b5e78', maxTicksLimit: 12 } },
       y: {
+        beginAtZero: true,
         grid: { color: 'rgba(30,42,61,.8)' },
         ticks: { color: '#7d93b0' },
         title: yLabel ? { display: true, text: yLabel, color: '#4b5e78' } : undefined
