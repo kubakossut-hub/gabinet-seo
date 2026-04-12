@@ -125,73 +125,7 @@
     </div>
   </div>
 
-  <!-- ── 4. Wydatki SEO ──────────────────────────────────────────────── -->
-  <div class="section-card">
-    <h2>💰 Wydatki SEO — miesięczny budżet</h2>
-    <div id="spendSuccessMsg" class="success-msg"></div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
-      Wpisuj co miesiąc ile wydajesz na SEO (agencja + narzędzia). Dashboard pokaże ROI vs wartość ruchu organicznego.
-    </p>
-    <div class="inline-form">
-      <div class="form-group" style="max-width:150px">
-        <label>Miesiąc</label>
-        <input type="month" id="spendMonth">
-      </div>
-      <div class="form-group" style="max-width:140px">
-        <label>Kwota (zł)</label>
-        <input type="number" id="spendAmount" placeholder="3500" min="0">
-      </div>
-      <div class="form-group">
-        <label>Uwagi</label>
-        <input type="text" id="spendNote" placeholder="np. Agencja + narzędzia">
-      </div>
-      <button class="btn-primary" onclick="saveSpend()" style="align-self:flex-end;padding:9px 20px">Zapisz</button>
-    </div>
-    <div id="spendList"></div>
-  </div>
-
-  <!-- ── 5. KPI Agencji ──────────────────────────────────────────────── -->
-  <div class="section-card">
-    <h2>🏢 KPI Agencji SEO — ocena miesięczna</h2>
-    <div id="kpiSuccessMsg" class="success-msg"></div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
-      Każdy miesiąc oceń pracę agencji. Te dane zasilają zakładkę „Dostawca" i pomagają generować maila z oceną.
-    </p>
-    <div class="form-row triple">
-      <div class="form-group">
-        <label>Miesiąc</label>
-        <input type="month" id="kpiMonth">
-      </div>
-      <div class="form-group">
-        <label>Raport dostarczony w terminie?</label>
-        <select id="kpiReport"><option value="1">✓ Tak</option><option value="0">✗ Nie</option></select>
-      </div>
-      <div class="form-group">
-        <label>Pozycje kluczowych fraz się poprawiły?</label>
-        <select id="kpiPositions"><option value="1">✓ Tak</option><option value="0">✗ Nie</option></select>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Target — ile fraz ma być w Top 10</label>
-        <input type="number" id="kpiTargetTop10" placeholder="np. 3" min="0">
-      </div>
-      <div class="form-group">
-        <label>Actual — ile fraz faktycznie jest w Top 10</label>
-        <input type="number" id="kpiActualTop10" placeholder="np. 4" min="0">
-      </div>
-      <div class="form-group">
-        <label>Uwagi (opcjonalnie)</label>
-        <input type="text" id="kpiNotes" placeholder="np. Agencja wyjaśniła spadki zmianą algorytmu">
-      </div>
-    </div>
-    <div class="form-actions">
-      <button class="btn-primary" onclick="saveKpi()">Zapisz ocenę KPI</button>
-    </div>
-    <div style="margin-top:18px" id="kpiList"></div>
-  </div>
-
-  <!-- ── 6. Cele Agencji ───────────────────────────────────────────── -->
+  <!-- ── 4. Cele Agencji ───────────────────────────────────────────── -->
   <div class="section-card">
     <h2>🎯 Cele współpracy z agencją SEO</h2>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px">
@@ -268,11 +202,7 @@ async function init() {
     document.getElementById('userInfo').textContent = me.username;
   } catch { window.location.href = '/seo/login'; return; }
 
-  await Promise.all([loadUsers(), loadConfig(), loadSpend(), loadKpiList(), loadGoalTypes(), loadAdminGoals()]);
-
-  const today = new Date().toISOString().slice(0, 7);
-  document.getElementById('spendMonth').value = today;
-  document.getElementById('kpiMonth').value = today;
+  await Promise.all([loadUsers(), loadConfig(), loadGoalTypes(), loadAdminGoals()]);
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await fetch('/seo/api/logout', { method: 'POST' });
@@ -419,88 +349,6 @@ async function saveConfig() {
     });
     showMsg('cfgSuccessMsg', 'Konfiguracja zapisana.');
   } catch (e) { showMsg('cfgSuccessMsg', e.message, true); }
-}
-
-// ── Spend ─────────────────────────────────────────────────────────────────
-
-async function loadSpend() {
-  const data = await apiFetch('/seo/api/spend');
-  if (!data.entries || !data.entries.length) {
-    document.getElementById('spendList').innerHTML =
-      '<p style="color:var(--text-muted);font-size:13px;margin-top:10px">Brak wpisów budżetu.</p>';
-    return;
-  }
-  const rows = data.entries.map(e => `
-    <tr>
-      <td><strong style="font-family:var(--font-display)">${e.month}</strong></td>
-      <td>${e.spendPln ? e.spendPln.toLocaleString('pl') + ' zł' : '—'}</td>
-      <td style="color:var(--text-muted)">${e.note || '—'}</td>
-    </tr>`).join('');
-  document.getElementById('spendList').innerHTML = `
-    <div class="table-wrap" style="margin-top:14px"><table>
-      <thead><tr><th>Miesiąc</th><th>Wydatki</th><th>Uwagi</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
-}
-
-async function saveSpend() {
-  const month    = document.getElementById('spendMonth').value;
-  const spendPln = document.getElementById('spendAmount').value;
-  const note     = document.getElementById('spendNote').value;
-  if (!month || !spendPln) return showMsg('spendSuccessMsg', 'Podaj miesiąc i kwotę.', true);
-  try {
-    await apiFetch('/seo/api/admin/spend', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ month, spendPln: parseFloat(spendPln), note })
-    });
-    showMsg('spendSuccessMsg', 'Wydatek zapisany.');
-    document.getElementById('spendAmount').value = '';
-    document.getElementById('spendNote').value = '';
-    await loadSpend();
-  } catch (e) { showMsg('spendSuccessMsg', e.message, true); }
-}
-
-// ── KPI ───────────────────────────────────────────────────────────────────
-
-async function loadKpiList() {
-  const data = await apiFetch('/seo/api/supplier');
-  if (!data.entries || !data.entries.length) {
-    document.getElementById('kpiList').innerHTML =
-      '<p style="color:var(--text-muted);font-size:13px">Brak wpisów KPI. Dodaj ocenę za bieżący miesiąc.</p>';
-    return;
-  }
-  const rows = data.entries.map(e => `
-    <tr>
-      <td><strong style="font-family:var(--font-display)">${e.month}</strong></td>
-      <td>${e.reportDelivered ? '<span class="badge badge-ok">✓ Tak</span>' : '<span class="badge badge-fail">✗ Nie</span>'}</td>
-      <td>${e.positionsImproved ? '<span class="badge badge-ok">✓ Tak</span>' : '<span class="badge badge-fail">✗ Nie</span>'}</td>
-      <td>${(e.targetTop10 || '—') + ' / ' + (e.actualTop10 !== undefined ? e.actualTop10 : '—')}</td>
-      <td style="color:var(--text-muted)">${e.notes || '—'}</td>
-    </tr>`).join('');
-  document.getElementById('kpiList').innerHTML = `
-    <div class="table-wrap"><table>
-      <thead><tr><th>Miesiąc</th><th>Raport</th><th>Pozycje</th><th>Top10 cel/wynik</th><th>Uwagi</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
-}
-
-async function saveKpi() {
-  const month = document.getElementById('kpiMonth').value;
-  if (!month) return showMsg('kpiSuccessMsg', 'Wybierz miesiąc.', true);
-  try {
-    await apiFetch(`/seo/api/admin/supplier/${encodeURIComponent(month)}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        reportDelivered:   document.getElementById('kpiReport').value === '1',
-        positionsImproved: document.getElementById('kpiPositions').value === '1',
-        targetTop10:  parseInt(document.getElementById('kpiTargetTop10').value) || 0,
-        actualTop10:  parseInt(document.getElementById('kpiActualTop10').value) || 0,
-        notes: document.getElementById('kpiNotes').value
-      })
-    });
-    showMsg('kpiSuccessMsg', 'Ocena KPI zapisana.');
-    await loadKpiList();
-  } catch (e) { showMsg('kpiSuccessMsg', e.message, true); }
 }
 
 // ── Goals ─────────────────────────────────────────────────────────────────

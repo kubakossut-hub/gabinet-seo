@@ -40,7 +40,7 @@
   <button data-tab="pages">Strony</button>
   <button data-tab="devices">Urządzenia</button>
   <button data-tab="chart">Wykres</button>
-  <button data-tab="supplier">Dostawca</button>
+  <button data-tab="budget">Budżet</button>
   <button data-tab="goals">Cele</button>
 </nav>
 
@@ -187,30 +187,44 @@
     </div>
   </div>
 
-  <!-- ── Dostawca ────────────────────────────────────────────────── -->
-  <div class="tab-panel" id="panel-supplier">
-    <div class="card">
+  <!-- ── Budżet ─────────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-budget">
+
+    <!-- Admin-only: add spend entry (shown via JS after auth check) -->
+    <div class="card" id="spendAddCard" style="display:none">
       <div class="card-header">
-        <div class="card-title">
-          KPI Agencji SEO — kontrola jakości
-          <button class="help-btn" data-help="supplier">?</button>
+        <div class="card-title">Dodaj wydatek miesięczny</div>
+      </div>
+      <div class="inline-form">
+        <div class="form-group" style="max-width:150px">
+          <label>Miesiąc</label>
+          <input type="month" id="spendMonth">
         </div>
+        <div class="form-group" style="max-width:140px">
+          <label>Kwota (zł)</label>
+          <input type="number" id="spendAmount" placeholder="3500" min="0">
+        </div>
+        <div class="form-group">
+          <label>Uwagi</label>
+          <input type="text" id="spendNote" placeholder="np. Agencja + narzędzia">
+        </div>
+        <button class="btn-primary" onclick="saveSpendEntry()" style="align-self:flex-end;padding:9px 20px">Zapisz</button>
       </div>
-      <div id="supplierContent">
-        <div class="loading"><div class="spinner"></div> Pobieranie danych…</div>
-      </div>
+      <div id="spendSaveMsg" class="success-msg" style="margin-top:10px"></div>
     </div>
+
     <div class="card">
       <div class="card-header">
         <div class="card-title">
-          Efektywność wydatków
-          <button class="help-btn" data-help="spend">?</button>
+          Wydatki SEO — efektywność
+          <button class="help-btn" data-help="budget">?</button>
         </div>
       </div>
       <div id="spendContent">
         <div class="loading"><div class="spinner"></div> Pobieranie danych…</div>
       </div>
     </div>
+
   </div>
 
   <!-- ── Cele ──────────────────────────────────────────────────────── -->

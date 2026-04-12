@@ -5,7 +5,6 @@ let chartInstance = null;
 let trafficChartInstance = null;
 let currentUser = null;
 let cachedKeywords = null;
-let cachedSupplier = null;
 let cachedTraffic  = null;
 let cachedSpend    = null;
 let agencyEmail = '';
@@ -28,7 +27,6 @@ function savePeriod(p) {
 }
 
 function resetAndReload() {
-  // Clear all data caches; supplier/spend don't depend on period
   cachedKeywords = null;
   cachedTraffic  = null;
   Object.assign(loaded, { positions: false, traffic: false, pages: false, devices: false, chart: false });
@@ -135,7 +133,16 @@ async function init() {
     const initials = currentUser.username.slice(0, 2).toUpperCase();
     document.getElementById('userAvatar').textContent = initials;
     document.getElementById('userInfo').textContent = currentUser.username;
-    if (currentUser.role === 'admin') document.getElementById('adminLink').style.display = '';
+    if (currentUser.role === 'admin') {
+      document.getElementById('adminLink').style.display = '';
+      const addCard = document.getElementById('spendAddCard');
+      if (addCard) {
+        addCard.style.display = '';
+        // Pre-fill current month
+        const todayMonth = new Date().toISOString().slice(0, 7);
+        document.getElementById('spendMonth').value = todayMonth;
+      }
+    }
   } catch {
     window.location.href = '/seo/login';
     return;
@@ -190,7 +197,7 @@ function loadTab(tab) {
   else if (tab === 'pages')    loadPages();
   else if (tab === 'devices')  loadDevices();
   else if (tab === 'chart')    loadChart();
-  else if (tab === 'supplier') loadSupplier();
+  else if (tab === 'budget')   loadBudget();
   else if (tab === 'goals')    loadGoals();
 }
 
@@ -247,14 +254,9 @@ const HELP_TEXTS = {
     body: 'Impressions (wyświetlenia) = ile razy Twoja strona pojawiła się w wynikach Google. Kliknięcia = ile razy ktoś faktycznie wszedł na stronę.\n\nStosunek kliknięcia/impressions = CTR (współczynnik klikalności). Dobry CTR dla medycyny estetycznej to 3–8%.\n\nJeśli impressions rosną a kliknięcia stoją — Twój tytuł strony jest mało atrakcyjny.',
     tip: '💡 Wzrost impressions przy stabilnych kliknięciach = Google Cię widzi, ale użytkownicy nie klikają. Warto poprawić opisy meta.'
   },
-  supplier: {
-    title: 'Jak oceniamy pracę agencji SEO?',
-    body: 'Co miesiąc sprawdzamy czy agencja:\n✓ Dostarczyła raport z prac\n✓ Poprawiła pozycje kluczowych fraz\n✓ Osiągnęła ustalony target (ile fraz w Top 10)\n\nZielony = OK, żółty = częściowo, czerwony = problem. Na podstawie tych danych możesz napisać maila do agencji.',
-    tip: '💡 Dobra agencja SEO powinna co miesiąc dostarczać raport z konkretnych działań i wyników.'
-  },
-  spend: {
+  budget: {
     title: 'Czy SEO się opłaca?',
-    body: 'Porównujemy miesięczne wydatki na SEO (agencja + narzędzia) z szacowaną wartością ruchu organicznego.\n\nWartość organiczna = liczba sesji × średnia cena kliknięcia w Google Ads. Jeśli za te wizyty musiałbyś płacić reklamami, tyle by Cię to kosztowało.\n\nROI × 2 = za każdą wydaną złotówkę otrzymujesz wartość 2 zł.',
+    body: 'Porównujemy miesięczne wydatki na SEO (agencja + narzędzia) z szacowaną wartością ruchu organicznego.\n\nWartość organiczna = liczba sesji × średnia cena kliknięcia w Google Ads. Jeśli za te wizyty musiałbyś płacić reklamami, tyle by Cię to kosztowało.\n\nROI × 2 = za każdą wydaną złotówkę otrzymujesz wartość 2 zł.\n\nAdmin może dodawać i usuwać wpisy bezpośrednio w tej zakładce.',
     tip: '💡 Ustaw realny średni CPC w panelu admina, żeby obliczenia były dokładniejsze.'
   },
   goals: {
@@ -634,62 +636,60 @@ function chartOptions(yLabel) {
   };
 }
 
-// ── Supplier ───────────────────────────────────────────────────────────────
+// ── Budget ─────────────────────────────────────────────────────────────────
 
-async function loadSupplier() {
+async function loadBudget() {
   try {
-    const [supp, spend] = await Promise.all([
-      apiFetch('/seo/api/supplier'),
-      apiFetch('/seo/api/spend')
-    ]);
-    cachedSupplier = supp;
+    const spend = await apiFetch('/seo/api/spend');
     cachedSpend = spend;
-    renderSupplier(supp);
     renderSpend(spend);
   } catch (e) {
-    document.getElementById('supplierContent').innerHTML =
+    document.getElementById('spendContent').innerHTML =
       `<div class="empty-state"><p>${esc(e.message)}</p></div>`;
   }
 }
 
-function renderSupplier({ entries }) {
-  if (!entries || !entries.length) {
-    document.getElementById('supplierContent').innerHTML =
-      `<div class="empty-state">
-        <div class="icon">🏢</div>
-        <p>Brak danych KPI agencji.<br>Admin dodaje wpisy w panelu admina → zakładka „KPI Agencji".</p>
-      </div>`;
+async function saveSpendEntry() {
+  const month    = document.getElementById('spendMonth').value;
+  const spendPln = document.getElementById('spendAmount').value;
+  const note     = document.getElementById('spendNote').value;
+  const msgEl    = document.getElementById('spendSaveMsg');
+
+  if (!month || !spendPln) {
+    msgEl.textContent = 'Podaj miesiąc i kwotę.';
+    msgEl.style.background = 'var(--red-glow)';
+    msgEl.style.borderColor = 'rgba(244,63,94,.3)';
+    msgEl.style.color = 'var(--red)';
+    msgEl.classList.add('show');
+    setTimeout(() => msgEl.classList.remove('show'), 3500);
     return;
   }
-  const rows = entries.map(e => {
-    const ok = e.reportDelivered && e.positionsImproved;
-    const partial = e.reportDelivered || e.positionsImproved;
-    const statusBadge = ok
-      ? '<span class="badge badge-ok">✓ Dobra robota</span>'
-      : partial
-        ? '<span class="badge badge-warn">~ Częściowo</span>'
-        : '<span class="badge badge-fail">✗ Problem</span>';
-    return `<tr>
-      <td><strong style="font-family:var(--font-display)">${e.month}</strong></td>
-      <td>${e.reportDelivered ? '<span class="badge badge-ok">✓ Tak</span>' : '<span class="badge badge-fail">✗ Nie</span>'}</td>
-      <td>${e.positionsImproved ? '<span class="badge badge-ok">✓ Tak</span>' : '<span class="badge badge-fail">✗ Nie</span>'}</td>
-      <td><strong>${e.targetTop10 || '—'}</strong> <span style="color:var(--text-muted)">cel</span> / <strong style="color:${(e.actualTop10 || 0) >= (e.targetTop10 || 0) ? 'var(--green)' : 'var(--red)'}">${e.actualTop10 !== undefined ? e.actualTop10 : '—'}</strong> <span style="color:var(--text-muted)">wynik</span></td>
-      <td style="color:var(--text-muted)">${e.notes || '—'}</td>
-      <td>${statusBadge}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('supplierContent').innerHTML = `
-    <div class="table-wrap"><table>
-      <thead><tr>
-        <th>Miesiąc</th>
-        <th>Raport dostarczony</th>
-        <th>Pozycje się poprawiły</th>
-        <th>Top 10 (cel / wynik)</th>
-        <th>Uwagi</th>
-        <th>Ocena</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>`;
+
+  try {
+    await apiFetch('/seo/api/admin/spend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month, spendPln: parseFloat(spendPln), note })
+    });
+    document.getElementById('spendAmount').value = '';
+    document.getElementById('spendNote').value = '';
+    msgEl.textContent = 'Wydatek zapisany.';
+    msgEl.style.background = 'var(--green-glow)';
+    msgEl.style.borderColor = 'rgba(16,185,129,.3)';
+    msgEl.style.color = 'var(--green)';
+    msgEl.classList.add('show');
+    setTimeout(() => msgEl.classList.remove('show'), 3000);
+    // Reload spend table
+    cachedSpend = null;
+    loadBudget();
+  } catch (e) {
+    msgEl.textContent = e.message;
+    msgEl.style.background = 'var(--red-glow)';
+    msgEl.style.borderColor = 'rgba(244,63,94,.3)';
+    msgEl.style.color = 'var(--red)';
+    msgEl.classList.add('show');
+    setTimeout(() => msgEl.classList.remove('show'), 3500);
+  }
 }
 
 function renderSpend({ entries, avgCpc }) {
@@ -697,7 +697,7 @@ function renderSpend({ entries, avgCpc }) {
     document.getElementById('spendContent').innerHTML =
       `<div class="empty-state">
         <div class="icon">💰</div>
-        <p>Brak danych o wydatkach.<br>Admin dodaje wpisy w panelu admina → zakładka „Wydatki SEO".</p>
+        <p>Brak wpisów. ${currentUser?.role === 'admin' ? 'Dodaj pierwszy wydatek powyżej.' : 'Admin doda wpisy w tej zakładce.'}</p>
       </div>`;
     return;
   }
@@ -819,16 +819,14 @@ async function openEmailDraft() {
 
   // Fetch any data not yet cached
   try {
-    const [kw, tr, supp, spend] = await Promise.all([
+    const [kw, tr, spend] = await Promise.all([
       cachedKeywords ? Promise.resolve(cachedKeywords) : apiFetch('/seo/api/keywords' + getApiParams()).catch(() => null),
       cachedTraffic  ? Promise.resolve(cachedTraffic)  : apiFetch('/seo/api/traffic'  + getApiParams()).catch(() => null),
-      cachedSupplier ? Promise.resolve(cachedSupplier) : apiFetch('/seo/api/supplier').catch(() => null),
       cachedSpend    ? Promise.resolve(cachedSpend)    : apiFetch('/seo/api/spend').catch(() => null),
     ]);
     if (kw  && !kw.error)  cachedKeywords = kw;
     if (tr  && !tr.error)  cachedTraffic  = tr;
-    if (supp) cachedSupplier = supp;
-    if (spend) cachedSpend   = spend;
+    if (spend) cachedSpend = spend;
   } catch {}
 
   btn.disabled = false;
@@ -904,24 +902,7 @@ async function openEmailDraft() {
     body += `  Brak danych z Google Analytics.\n\n`;
   }
 
-  // 3. KPI AGENCJI
-  body += `📋 KPI AGENCJI\n\n`;
-  if (cachedSupplier?.entries?.length) {
-    const last = cachedSupplier.entries[0];
-    body += `  Ostatni rozliczony miesiąc: ${last.month}\n`;
-    body += `  • Raport dostarczony: ${last.reportDelivered ? 'TAK ✓' : 'NIE ✗'}\n`;
-    body += `  • Pozycje poprawiły się: ${last.positionsImproved ? 'TAK ✓' : 'NIE ✗'}\n`;
-    if (last.targetTop10 !== undefined) {
-      const achieved = last.actualTop10 >= last.targetTop10;
-      body += `  • Frazy w Top 10: ${last.actualTop10 || 0} / ${last.targetTop10} zakładanych ${achieved ? '✓' : '✗'}\n`;
-    }
-    if (last.notes) body += `  • Uwagi: ${last.notes}\n`;
-    body += '\n';
-  } else {
-    body += `  Brak danych KPI — dodaj wpisy w panelu admina.\n\n`;
-  }
-
-  // 4. EFEKTYWNOŚĆ WYDATKÓW
+  // 3. EFEKTYWNOŚĆ WYDATKÓW
   body += `💰 EFEKTYWNOŚĆ WYDATKÓW\n\n`;
   if (cachedSpend?.entries?.length) {
     const avgCpc = cachedSpend.avgCpc || 8.5;
@@ -954,15 +935,6 @@ async function openEmailDraft() {
       issues.push(`Frazy: ${noData.map(k => k.keyword).join(', ')} nie pojawiają się w wynikach wyszukiwania. Jakie działania są planowane?`);
     }
   }
-  if (cachedSupplier?.entries?.length) {
-    const last = cachedSupplier.entries[0];
-    if (!last.reportDelivered) issues.push('Brak raportu miesięcznego — proszę o pilne przesłanie.');
-    if (!last.positionsImproved) issues.push('Pozycje nie uległy poprawie. Proszę o informację co zostało wykonane i co planujecie na następny miesiąc.');
-    if (last.targetTop10 !== undefined && last.actualTop10 < last.targetTop10) {
-      issues.push(`Nie osiągnięto targetu Top 10 (${last.actualTop10}/${last.targetTop10}). Jakie działania podejmiecie?`);
-    }
-  }
-
   if (issues.length) {
     issues.forEach((q, i) => { body += `${i + 1}. ${q}\n`; });
   } else {
@@ -977,7 +949,6 @@ async function openEmailDraft() {
   const bullets = [
     `<strong>Pozycje kluczowych fraz</strong> — na których miejscach w Google pojawia się strona kliniki dla najważniejszych zabiegów. Numer 1 to szczyt, im niższy tym lepiej.`,
     `<strong>Ruch organiczny</strong> — ile osób odwiedziło stronę kliknąwszy w wyniki Google (nie reklamy). To efekt pracy SEO.`,
-    `<strong>KPI agencji</strong> — czy agencja wywiązała się z umowy: dostarczyła raport i poprawiła pozycje.`,
     `<strong>Efektywność wydatków (ROI)</strong> — ile wart jest ruch organiczny względem kwoty zapłaconej agencji. ROI ×3 = za każdą złotówkę wynagrodzenia agencja przyniosła 3 zł wartości.`,
     `<strong>Pytania i oczekiwania</strong> — konkretne żądania oparte na danych. Wysyłasz je, żeby agencja nie mogła zbagatelizować problemów.`,
   ];
@@ -1002,10 +973,22 @@ function copyEmailToClipboard() {
 }
 
 function openInMailClient() {
-  const to      = encodeURIComponent(document.getElementById('emailTo').value || '');
+  const to      = document.getElementById('emailTo').value || '';
   const subject = encodeURIComponent(document.getElementById('emailSubject').value || '');
-  const body    = encodeURIComponent(document.getElementById('emailBody').value || '');
-  window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+  const body    = document.getElementById('emailBody').value || '';
+
+  // mailto: URI body has ~2000-char browser limit — copy full body to clipboard instead
+  navigator.clipboard.writeText(body).catch(() => {});
+
+  // Open mail client with To + Subject pre-filled only
+  const a = document.createElement('a');
+  a.href = `mailto:${encodeURIComponent(to)}?subject=${subject}`;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  toast('Treść skopiowana do schowka — wklej ją do maila (Ctrl+V / Cmd+V)', 'success');
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
