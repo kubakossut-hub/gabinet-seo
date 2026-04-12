@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEO Dashboard</title>
+  <link rel="stylesheet" href="/seo/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── Toast container ──────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── Header ─────────────────────────────────────────────────────── -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    SEO Dashboard
+  </div>
+  <div class="header-right">
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <span id="userInfo"></span>
+    </div>
+    <button class="btn-email" id="emailAgencyBtn" onclick="openEmailDraft()">
+      ✉ Napisz do agencji
+    </button>
+    <a href="/seo/admin" id="adminLink" style="display:none">
+      <button class="btn-sm">⚙ Admin</button>
+    </a>
+    <button class="btn-sm" id="logoutBtn">Wyloguj</button>
+  </div>
+</header>
+
+<!-- ── Tab bar ────────────────────────────────────────────────────── -->
+<nav class="tab-bar" id="tabBar">
+  <button class="active" data-tab="positions">Pozycje</button>
+  <button data-tab="traffic">Ruch</button>
+  <button data-tab="pages">Strony</button>
+  <button data-tab="devices">Urządzenia</button>
+  <button data-tab="chart">Wykres</button>
+  <button data-tab="supplier">Dostawca</button>
+</nav>
+
+<div class="main">
+
+  <!-- ── Pozycje ──────────────────────────────────────────────────── -->
+  <div class="tab-panel active" id="panel-positions">
+    <div id="firstRunBanner" class="warning-banner" style="display:none">
+      ⚠️ <strong>Pierwsze uruchomienie.</strong>&nbsp;
+      <a href="/seo/admin">Zmień hasło i skonfiguruj Google API w panelu admina.</a>
+    </div>
+    <div id="googleWarnPositions" class="warning-banner" style="display:none">
+      ⚙️ Google Search Console nie jest skonfigurowane.
+      <a href="/seo/admin">Skonfiguruj w panelu admina.</a>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Pozycje kluczowych fraz
+          <button class="help-btn" data-help="positions">?</button>
+        </div>
+        <div class="card-actions">
+          <span id="positionsQuarterBadge" style="font-size:11px;color:var(--text-muted)"></span>
+        </div>
+      </div>
+      <div id="positionsContent">
+        <div class="loading"><div class="spinner"></div> Pobieranie danych z Google…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Ruch ─────────────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-traffic">
+    <div id="googleWarnTraffic" class="warning-banner" style="display:none">
+      ⚙️ Google Analytics nie jest skonfigurowane.
+      <a href="/seo/admin">Skonfiguruj w panelu admina.</a>
+    </div>
+    <div class="card-header" style="margin-bottom:0">
+      <div class="card-title" style="margin-bottom:16px">
+        Ruch organiczny
+        <button class="help-btn" data-help="traffic">?</button>
+      </div>
+    </div>
+    <div id="trafficStats" class="stats-grid"></div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Trend tygodniowy — sesje organiczne
+          <button class="help-btn" data-help="trend">?</button>
+        </div>
+      </div>
+      <div id="trafficChartWrap">
+        <div class="loading"><div class="spinner"></div> Pobieranie danych…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Strony ──────────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-pages">
+    <div id="googleWarnPages" class="warning-banner" style="display:none">
+      ⚙️ Google Search Console nie jest skonfigurowane.
+      <a href="/seo/admin">Skonfiguruj w panelu admina.</a>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Top 10 stron organicznych
+          <button class="help-btn" data-help="pages">?</button>
+        </div>
+        <span id="pagesQuarter" style="font-size:11px;color:var(--text-muted)"></span>
+      </div>
+      <div id="pagesContent">
+        <div class="loading"><div class="spinner"></div> Pobieranie danych…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Urządzenia ──────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-devices">
+    <div id="googleWarnDevices" class="warning-banner" style="display:none">
+      ⚙️ Google Search Console nie jest skonfigurowane.
+      <a href="/seo/admin">Skonfiguruj w panelu admina.</a>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Podział ruchu wg urządzenia
+          <button class="help-btn" data-help="devices">?</button>
+        </div>
+      </div>
+      <div id="devicesContent">
+        <div class="loading"><div class="spinner"></div> Pobieranie danych…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Wykres ──────────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-chart">
+    <div id="googleWarnChart" class="warning-banner" style="display:none">
+      ⚙️ Google Search Console nie jest skonfigurowane.
+      <a href="/seo/admin">Skonfiguruj w panelu admina.</a>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Impressions vs Kliknięcia — ostatnie 16 tygodni
+          <button class="help-btn" data-help="chart">?</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="mainChart"></canvas>
+      </div>
+      <div id="chartLoading" class="loading"><div class="spinner"></div> Pobieranie danych…</div>
+    </div>
+  </div>
+
+  <!-- ── Dostawca ────────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-supplier">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          KPI Agencji SEO — kontrola jakości
+          <button class="help-btn" data-help="supplier">?</button>
+        </div>
+      </div>
+      <div id="supplierContent">
+        <div class="loading"><div class="spinner"></div> Pobieranie danych…</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          Efektywność wydatków
+          <button class="help-btn" data-help="spend">?</button>
+        </div>
+      </div>
+      <div id="spendContent">
+        <div class="loading"><div class="spinner"></div> Pobieranie danych…</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.main -->
+
+<!-- ── Email draft modal ────────────────────────────────────────── -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        ✉ Draft maila do agencji SEO
+      </div>
+      <button class="modal-close" onclick="closeEmailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta">
+        <div class="modal-meta-item">
+          <label>Od (Twój email)</label>
+          <input type="email" id="emailFrom" placeholder="twój@email.pl">
+        </div>
+        <div class="modal-meta-item">
+          <label>Do (email agencji)</label>
+          <input type="email" id="emailTo" placeholder="agencja@seo.pl">
+        </div>
+        <div class="modal-meta-item" style="grid-column:1/-1">
+          <label>Temat</label>
+          <input type="text" id="emailSubject">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label>Treść maila</label>
+        <textarea id="emailBody"></textarea>
+      </div>
+      <p class="tooltip-text" style="margin-top:10px">
+        💡 Możesz edytować treść przed wysłaniem. Kliknij „Otwórz w poczcie" żeby otworzyć gotowego drafta w swoim kliencie poczty (Gmail, Outlook itp.).
+      </p>
+      <div id="emailExplanation" class="email-explanation" style="display:none"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="copyEmailToClipboard()">📋 Skopiuj treść</button>
+      <button class="btn-primary" onclick="openInMailClient()">📬 Otwórz w poczcie</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Help popover (shared, positioned by JS) ──────────────────── -->
+<div class="help-popover" id="helpPopover"></div>
+
+<script src="/seo/static/app.js"></script>
+</body>
+</html>

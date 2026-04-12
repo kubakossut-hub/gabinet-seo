@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEO Admin</title>
+  <link rel="stylesheet" href="/seo/static/style.css">
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Panel Admina
+  </div>
+  <div class="header-right">
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <span id="userInfo"></span>
+    </div>
+    <button class="btn-sm" id="logoutBtn">Wyloguj</button>
+  </div>
+</header>
+
+<div class="main">
+  <a href="/seo/dashboard" class="back-link">← Wróć do dashboardu</a>
+
+  <!-- ── 1. Użytkownicy ─────────────────────────────────────────────── -->
+  <div class="section-card">
+    <h2>👥 Użytkownicy systemu</h2>
+    <div id="userSuccessMsg" class="success-msg"></div>
+    <div id="userList" class="user-list"></div>
+
+    <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:14px;font-family:var(--font-display)">
+        Dodaj nowego użytkownika
+      </div>
+      <div class="form-row triple">
+        <div class="form-group"><label>Login</label><input type="text" id="newUsername" placeholder="np. anna"></div>
+        <div class="form-group"><label>Email (do wysyłki maili)</label><input type="email" id="newEmail" placeholder="anna@klinika.pl"></div>
+        <div class="form-group"><label>Hasło (min. 6 znaków)</label><input type="password" id="newPassword" placeholder="••••••••"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end">
+        <div class="form-group" style="max-width:160px;margin-bottom:0">
+          <label>Rola</label>
+          <select id="newRole">
+            <option value="viewer">Viewer — tylko podgląd</option>
+            <option value="admin">Admin — pełny dostęp</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="addUser()" style="padding:9px 22px;margin-bottom:0">Dodaj użytkownika</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. Zmień hasło / email ──────────────────────────────────────── -->
+  <div class="section-card">
+    <h2>🔑 Zmień hasło lub email</h2>
+    <div id="pwSuccessMsg" class="success-msg"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Użytkownik</label>
+        <select id="pwUsername" onchange="fillUserEmail()"></select>
+      </div>
+      <div class="form-group">
+        <label>Email użytkownika</label>
+        <input type="email" id="pwEmail" placeholder="email@klinika.pl">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nowe hasło (zostaw puste żeby nie zmieniać)</label>
+        <input type="password" id="pwNew" placeholder="min. 6 znaków">
+      </div>
+      <div class="form-group">
+        <label>Powtórz nowe hasło</label>
+        <input type="password" id="pwConfirm" placeholder="">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="changeUser()">Zapisz zmiany</button>
+    </div>
+    <p class="notice">Email użytkownika jest automatycznie wpisywany jako nadawca (pole „Od") podczas tworzenia draftu maila do agencji.</p>
+  </div>
+
+  <!-- ── 3. Konfiguracja Google ──────────────────────────────────────── -->
+  <div class="section-card">
+    <h2>🔗 Konfiguracja Google</h2>
+    <div id="cfgSuccessMsg" class="success-msg"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>GSC Property (Google Search Console)</label>
+        <input type="text" id="gscProperty" placeholder="sc-domain:twojaklinika.pl">
+        <p class="notice">Format domenowy: <code>sc-domain:domena.pl</code> lub <code>https://www.domena.pl/</code></p>
+      </div>
+      <div class="form-group">
+        <label>GA4 Property ID (Google Analytics)</label>
+        <input type="text" id="ga4PropertyId" placeholder="properties/123456789">
+        <p class="notice">Znajdziesz w: GA4 → Admin → Property Settings → Property ID</p>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Średni CPC (zł) — koszt jednego kliknięcia w Google Ads</label>
+        <input type="number" id="avgCpc" placeholder="8.5" step="0.5" style="max-width:140px">
+        <p class="notice">Używany do obliczenia wartości ruchu organicznego vs koszty SEO.</p>
+      </div>
+      <div class="form-group">
+        <label>Email agencji SEO (do wypełnienia pola „Do" w mailach)</label>
+        <input type="email" id="agencyEmail" placeholder="agencja@seo.pl">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Śledzone frazy kluczowe (jedna fraza na wiersz)</label>
+      <textarea id="trackedKeywords" rows="10" style="resize:vertical;line-height:1.7"></textarea>
+    </div>
+    <div class="notice" style="margin-bottom:14px">
+      ℹ️ Klucz serwisowy Google zapisz jako plik <code>data/google-service-account.json</code> (lokalnie) lub jako zmienną <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> w Railway.
+      <a href="https://railway.app" target="_blank" style="margin-left:4px">Otwórz Railway →</a>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveConfig()">Zapisz konfigurację</button>
+    </div>
+  </div>
+
+  <!-- ── 4. Wydatki SEO ──────────────────────────────────────────────── -->
+  <div class="section-card">
+    <h2>💰 Wydatki SEO — miesięczny budżet</h2>
+    <div id="spendSuccessMsg" class="success-msg"></div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+      Wpisuj co miesiąc ile wydajesz na SEO (agencja + narzędzia). Dashboard pokaże ROI vs wartość ruchu organicznego.
+    </p>
+    <div class="inline-form">
+      <div class="form-group" style="max-width:150px">
+        <label>Miesiąc</label>
+        <input type="month" id="spendMonth">
+      </div>
+      <div class="form-group" style="max-width:140px">
+        <label>Kwota (zł)</label>
+        <input type="number" id="spendAmount" placeholder="3500" min="0">
+      </div>
+      <div class="form-group">
+        <label>Uwagi</label>
+        <input type="text" id="spendNote" placeholder="np. Agencja + narzędzia">
+      </div>
+      <button class="btn-primary" onclick="saveSpend()" style="align-self:flex-end;padding:9px 20px">Zapisz</button>
+    </div>
+    <div id="spendList"></div>
+  </div>
+
+  <!-- ── 5. KPI Agencji ──────────────────────────────────────────────── -->
+  <div class="section-card">
+    <h2>🏢 KPI Agencji SEO — ocena miesięczna</h2>
+    <div id="kpiSuccessMsg" class="success-msg"></div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+      Każdy miesiąc oceń pracę agencji. Te dane zasilają zakładkę „Dostawca" i pomagają generować maila z oceną.
+    </p>
+    <div class="form-row triple">
+      <div class="form-group">
+        <label>Miesiąc</label>
+        <input type="month" id="kpiMonth">
+      </div>
+      <div class="form-group">
+        <label>Raport dostarczony w terminie?</label>
+        <select id="kpiReport"><option value="1">✓ Tak</option><option value="0">✗ Nie</option></select>
+      </div>
+      <div class="form-group">
+        <label>Pozycje kluczowych fraz się poprawiły?</label>
+        <select id="kpiPositions"><option value="1">✓ Tak</option><option value="0">✗ Nie</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Target — ile fraz ma być w Top 10</label>
+        <input type="number" id="kpiTargetTop10" placeholder="np. 3" min="0">
+      </div>
+      <div class="form-group">
+        <label>Actual — ile fraz faktycznie jest w Top 10</label>
+        <input type="number" id="kpiActualTop10" placeholder="np. 4" min="0">
+      </div>
+      <div class="form-group">
+        <label>Uwagi (opcjonalnie)</label>
+        <input type="text" id="kpiNotes" placeholder="np. Agencja wyjaśniła spadki zmianą algorytmu">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveKpi()">Zapisz ocenę KPI</button>
+    </div>
+    <div style="margin-top:18px" id="kpiList"></div>
+  </div>
+
+  <!-- ── 6. Cache ────────────────────────────────────────────────────── -->
+  <div class="section-card">
+    <h2>🗄️ Cache danych Google</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+      Dane z Google Search Console i Analytics są przechowywane przez <strong>1 godzinę</strong> dla szybkości działania.
+      Wyczyść cache, żeby natychmiast pobrać aktualne dane (np. po zmianie konfiguracji).
+    </p>
+    <button class="btn-ghost" onclick="clearCache()">🔄 Wyczyść cache i pobierz świeże dane</button>
+  </div>
+
+</div>
+
+<script>
+let allUsers = [];
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+async function init() {
+  try {
+    const me = await apiFetch('/seo/api/me');
+    if (me.role !== 'admin') { window.location.href = '/seo/dashboard'; return; }
+    document.getElementById('userAvatar').textContent = me.username.slice(0,2).toUpperCase();
+    document.getElementById('userInfo').textContent = me.username;
+  } catch { window.location.href = '/seo/login'; return; }
+
+  await Promise.all([loadUsers(), loadConfig(), loadSpend(), loadKpiList()]);
+
+  const today = new Date().toISOString().slice(0, 7);
+  document.getElementById('spendMonth').value = today;
+  document.getElementById('kpiMonth').value = today;
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/seo/api/logout', { method: 'POST' });
+    window.location.href = '/seo/login';
+  });
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+
+async function apiFetch(url, opts) {
+  const res = await fetch(url, opts);
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function toast(msg, type = 'info') {
+  const ct = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  el.innerHTML = `<span style="font-weight:700;color:var(--${type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue'})">${icons[type]}</span> ${esc(msg)}`;
+  ct.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transform='translateY(8px)'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 3000);
+}
+
+function showMsg(id, msg, isError) {
+  const el = document.getElementById(id);
+  if (!el) { toast(msg, isError ? 'error' : 'success'); return; }
+  el.textContent = msg;
+  el.style.background = isError ? 'var(--red-glow)' : 'var(--green-glow)';
+  el.style.borderColor = isError ? 'rgba(244,63,94,.3)' : 'rgba(16,185,129,.3)';
+  el.style.color = isError ? 'var(--red)' : 'var(--green)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────
+
+async function loadUsers() {
+  allUsers = await apiFetch('/seo/api/admin/users');
+  const sel = document.getElementById('pwUsername');
+  sel.innerHTML = allUsers.map(u => `<option value="${esc(u.username)}">${esc(u.username)}</option>`).join('');
+  fillUserEmail();
+
+  document.getElementById('userList').innerHTML = allUsers.length
+    ? allUsers.map(u => `
+      <div class="user-item">
+        <div class="user-item-info">
+          <div class="user-avatar" style="width:30px;height:30px;font-size:12px">${esc(u.username.slice(0,2).toUpperCase())}</div>
+          <span style="font-weight:600">${esc(u.username)}</span>
+          <span class="role-badge role-${u.role}">${u.role === 'admin' ? 'Admin' : 'Viewer'}</span>
+          ${u.email ? `<span class="user-email-chip">✉ ${esc(u.email)}</span>` : '<span class="user-email-chip" style="opacity:.5">brak emaila</span>'}
+        </div>
+        <div class="user-item-actions">
+          <button class="btn-danger" onclick="deleteUser('${esc(u.username)}')">Usuń</button>
+        </div>
+      </div>`).join('')
+    : '<p style="color:var(--text-muted);font-size:13px">Brak użytkowników.</p>';
+}
+
+function fillUserEmail() {
+  const username = document.getElementById('pwUsername').value;
+  const user = allUsers.find(u => u.username === username);
+  document.getElementById('pwEmail').value = user?.email || '';
+}
+
+async function addUser() {
+  const username = document.getElementById('newUsername').value.trim();
+  const email    = document.getElementById('newEmail').value.trim();
+  const password = document.getElementById('newPassword').value;
+  const role     = document.getElementById('newRole').value;
+  if (!username || !password) return showMsg('userSuccessMsg', 'Wypełnij login i hasło.', true);
+  if (password.length < 6)    return showMsg('userSuccessMsg', 'Hasło musi mieć min. 6 znaków.', true);
+  try {
+    await apiFetch('/seo/api/admin/users', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, role, email })
+    });
+    showMsg('userSuccessMsg', `Użytkownik "${username}" dodany.`);
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newEmail').value = '';
+    document.getElementById('newPassword').value = '';
+    await loadUsers();
+  } catch (e) { showMsg('userSuccessMsg', e.message, true); }
+}
+
+async function deleteUser(username) {
+  if (!confirm(`Usunąć użytkownika "${username}"? Tej operacji nie można cofnąć.`)) return;
+  try {
+    await apiFetch(`/seo/api/admin/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
+    showMsg('userSuccessMsg', `Użytkownik "${username}" usunięty.`);
+    await loadUsers();
+  } catch (e) { showMsg('userSuccessMsg', e.message, true); }
+}
+
+async function changeUser() {
+  const username = document.getElementById('pwUsername').value;
+  const email = document.getElementById('pwEmail').value.trim();
+  const pw  = document.getElementById('pwNew').value;
+  const pw2 = document.getElementById('pwConfirm').value;
+  if (pw && pw.length < 6) return showMsg('pwSuccessMsg', 'Hasło musi mieć min. 6 znaków.', true);
+  if (pw && pw !== pw2)    return showMsg('pwSuccessMsg', 'Hasła nie są identyczne.', true);
+  try {
+    const body = { email };
+    if (pw) body.password = pw;
+    await apiFetch(`/seo/api/admin/users/${encodeURIComponent(username)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    showMsg('pwSuccessMsg', `Dane użytkownika "${username}" zaktualizowane.`);
+    document.getElementById('pwNew').value = '';
+    document.getElementById('pwConfirm').value = '';
+    await loadUsers();
+  } catch (e) { showMsg('pwSuccessMsg', e.message, true); }
+}
+
+// ── Config ────────────────────────────────────────────────────────────────
+
+async function loadConfig() {
+  const cfg = await apiFetch('/seo/api/admin/config');
+  document.getElementById('gscProperty').value = cfg.gscProperty || '';
+  document.getElementById('ga4PropertyId').value = cfg.ga4PropertyId || '';
+  document.getElementById('avgCpc').value = cfg.avgCpcPln || 8.5;
+  document.getElementById('agencyEmail').value = cfg.agencyEmail || '';
+  document.getElementById('trackedKeywords').value = (cfg.trackedKeywords || []).join('\n');
+}
+
+async function saveConfig() {
+  const keywords = document.getElementById('trackedKeywords').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  try {
+    await apiFetch('/seo/api/admin/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gscProperty:     document.getElementById('gscProperty').value.trim(),
+        ga4PropertyId:   document.getElementById('ga4PropertyId').value.trim(),
+        avgCpcPln:       parseFloat(document.getElementById('avgCpc').value) || 8.5,
+        agencyEmail:     document.getElementById('agencyEmail').value.trim(),
+        trackedKeywords: keywords
+      })
+    });
+    showMsg('cfgSuccessMsg', 'Konfiguracja zapisana.');
+  } catch (e) { showMsg('cfgSuccessMsg', e.message, true); }
+}
+
+// ── Spend ─────────────────────────────────────────────────────────────────
+
+async function loadSpend() {
+  const data = await apiFetch('/seo/api/spend');
+  if (!data.entries || !data.entries.length) {
+    document.getElementById('spendList').innerHTML =
+      '<p style="color:var(--text-muted);font-size:13px;margin-top:10px">Brak wpisów budżetu.</p>';
+    return;
+  }
+  const rows = data.entries.map(e => `
+    <tr>
+      <td><strong style="font-family:var(--font-display)">${e.month}</strong></td>
+      <td>${e.spendPln ? e.spendPln.toLocaleString('pl') + ' zł' : '—'}</td>
+      <td style="color:var(--text-muted)">${e.note || '—'}</td>
+    </tr>`).join('');
+  document.getElementById('spendList').innerHTML = `
+    <div class="table-wrap" style="margin-top:14px"><table>
+      <thead><tr><th>Miesiąc</th><th>Wydatki</th><th>Uwagi</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+async function saveSpend() {
+  const month    = document.getElementById('spendMonth').value;
+  const spendPln = document.getElementById('spendAmount').value;
+  const note     = document.getElementById('spendNote').value;
+  if (!month || !spendPln) return showMsg('spendSuccessMsg', 'Podaj miesiąc i kwotę.', true);
+  try {
+    await apiFetch('/seo/api/admin/spend', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ month, spendPln: parseFloat(spendPln), note })
+    });
+    showMsg('spendSuccessMsg', 'Wydatek zapisany.');
+    document.getElementById('spendAmount').value = '';
+    document.getElementById('spendNote').value = '';
+    await loadSpend();
+  } catch (e) { showMsg('spendSuccessMsg', e.message, true); }
+}
+
+// ── KPI ───────────────────────────────────────────────────────────────────
+
+async function loadKpiList() {
+  const data = await apiFetch('/seo/api/supplier');
+  if (!data.entries || !data.entries.length) {
+    document.getElementById('kpiList').innerHTML =
+      '<p style="color:var(--text-muted);font-size:13px">Brak wpisów KPI. Dodaj ocenę za bieżący miesiąc.</p>';
+    return;
+  }
+  const rows = data.entries.map(e => `
+    <tr>
+      <td><strong style="font-family:var(--font-display)">${e.month}</strong></td>
+      <td>${e.reportDelivered ? '<span class="badge badge-ok">✓ Tak</span>' : '<span class="badge badge-fail">✗ Nie</span>'}</td>
+      <td>${e.positionsImproved ? '<span class="badge badge-ok">✓ Tak</span>' : '<span class="badge badge-fail">✗ Nie</span>'}</td>
+      <td>${(e.targetTop10 || '—') + ' / ' + (e.actualTop10 !== undefined ? e.actualTop10 : '—')}</td>
+      <td style="color:var(--text-muted)">${e.notes || '—'}</td>
+    </tr>`).join('');
+  document.getElementById('kpiList').innerHTML = `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Miesiąc</th><th>Raport</th><th>Pozycje</th><th>Top10 cel/wynik</th><th>Uwagi</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+}
+
+async function saveKpi() {
+  const month = document.getElementById('kpiMonth').value;
+  if (!month) return showMsg('kpiSuccessMsg', 'Wybierz miesiąc.', true);
+  try {
+    await apiFetch(`/seo/api/admin/supplier/${encodeURIComponent(month)}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reportDelivered:   document.getElementById('kpiReport').value === '1',
+        positionsImproved: document.getElementById('kpiPositions').value === '1',
+        targetTop10:  parseInt(document.getElementById('kpiTargetTop10').value) || 0,
+        actualTop10:  parseInt(document.getElementById('kpiActualTop10').value) || 0,
+        notes: document.getElementById('kpiNotes').value
+      })
+    });
+    showMsg('kpiSuccessMsg', 'Ocena KPI zapisana.');
+    await loadKpiList();
+  } catch (e) { showMsg('kpiSuccessMsg', e.message, true); }
+}
+
+// ── Cache ─────────────────────────────────────────────────────────────────
+
+async function clearCache() {
+  try {
+    await apiFetch('/seo/api/admin/cache/clear', { method: 'POST' });
+    toast('Cache wyczyszczony — dane zostaną pobrane z Google przy następnym otwarciu zakładki', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>

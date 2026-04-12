@@ -1,1 +1,8 @@
 node_modules/
+.DS_Store
+data/users.json
+data/spend.json
+data/supplier.json
+data/cache/
+data/google-service-account.json
+.env
