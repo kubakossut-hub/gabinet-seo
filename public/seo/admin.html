@@ -541,8 +541,7 @@ function renderGoalFields() {
   hint.style.display = t.hint ? '' : 'none';
   addBtn.disabled = false;
 
-  paramsForm.style.display = '';
-  paramsForm.innerHTML = t.fields.map(f => {
+  const fieldsHtml = t.fields.map(f => {
     let input;
     if (f.type === 'keyword-select') {
       input = `<select id="gp_${esc(f.key)}" style="width:100%">
@@ -566,6 +565,45 @@ function renderGoalFields() {
       ${input}
     </div>`;
   }).join('');
+
+  // Suggestion chips — only shown when there are suggestions for this type
+  let suggestionsHtml = '';
+  if (t.suggestions && t.suggestions.length) {
+    const chips = t.suggestions.map((s, i) => `
+      <button type="button" class="goal-chip" data-suggestion-idx="${i}" onclick="applyGoalSuggestion('${esc(type)}', ${i})">
+        ${esc(s.label)}
+        <span class="goal-chip-tooltip">${esc(s.desc)}</span>
+      </button>`).join('');
+    suggestionsHtml = `
+      <div class="goal-suggestions" style="grid-column:1/-1">
+        <div class="goal-suggestions-label">💡 Sugerowane wartości — kliknij żeby wypełnić</div>
+        <div class="goal-suggestion-chips">${chips}</div>
+      </div>`;
+  }
+
+  paramsForm.style.display = '';
+  paramsForm.innerHTML = fieldsHtml + suggestionsHtml;
+}
+
+function applyGoalSuggestion(typeKey, idx) {
+  const t = goalTypes.find(g => g.key === typeKey);
+  if (!t || !t.suggestions || !t.suggestions[idx]) return;
+
+  const suggestion = t.suggestions[idx];
+
+  // Fill form fields from suggestion values (skip keyword-select — user must choose themselves)
+  for (const f of t.fields) {
+    if (f.type === 'keyword-select') continue; // Don't overwrite keyword choice
+    const val = suggestion.values[f.key];
+    if (val === undefined) continue;
+    const el = document.getElementById(`gp_${f.key}`);
+    if (el) el.value = val;
+  }
+
+  // Highlight active chip
+  document.querySelectorAll('.goal-chip').forEach(c => c.classList.remove('active'));
+  const chips = document.querySelectorAll('.goal-chip');
+  if (chips[idx]) chips[idx].classList.add('active');
 }
 
 async function addGoalAdmin() {

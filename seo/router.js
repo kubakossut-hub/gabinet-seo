@@ -204,7 +204,7 @@ router.get('/api/goals', auth.requireAuth, async (req, res) => {
 // Goal type definitions (for admin form)
 router.get('/api/admin/goal-types', auth.requireAdmin, (req, res) => {
   const types = Object.entries(GOAL_TYPES).map(([key, t]) => ({
-    key, label: t.label, hint: t.hint, fields: t.fields
+    key, label: t.label, hint: t.hint, fields: t.fields, suggestions: t.suggestions || []
   }));
   res.json({ types });
 });

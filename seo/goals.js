@@ -13,6 +13,11 @@ const GOAL_TYPES = {
       { key: 'keyword',     label: 'Fraza kluczowa', type: 'keyword-select' },
       { key: 'maxPosition', label: 'Maksymalna pozycja (≤)', type: 'number', min: 1, max: 100, placeholder: '10' }
     ],
+    suggestions: [
+      { values: { maxPosition: 10 }, label: 'Pierwsza strona', desc: 'Pozycje 1–10 to wyniki na pierwszej stronie Google. Minimum, żeby klient Cię znalazł.' },
+      { values: { maxPosition: 5  }, label: 'Top 5',           desc: 'Zbiera ~65% kliknięć dla danej frazy. Solidny cel dla ważnych zabiegów.' },
+      { values: { maxPosition: 3  }, label: 'Złota trójka',    desc: 'Pozycje 1–3 zgarniają ~60% wszystkich kliknięć. Warto dla głównych fraz.' }
+    ],
     desc: (p) => `Fraza „${p.keyword}" na pozycji ≤ ${p.maxPosition}`,
     unit: '',
     lowerIsBetter: true,
@@ -34,6 +39,12 @@ const GOAL_TYPES = {
       { key: 'topN',     label: 'Top N', type: 'select', options: [3, 5, 10, 20, 30] },
       { key: 'minCount', label: 'Minimalna liczba fraz', type: 'number', min: 1, max: 50, placeholder: '5' }
     ],
+    suggestions: [
+      { values: { topN: '10', minCount: 3 }, label: '3 frazy w Top 10',  desc: 'Dobry punkt startowy jeśli teraz jesteś poza pierwszą stroną.' },
+      { values: { topN: '10', minCount: 5 }, label: '5 fraz w Top 10',   desc: 'Realistyczny cel po 3–6 miesiącach współpracy z agencją.' },
+      { values: { topN: '10', minCount: 8 }, label: '8 fraz w Top 10',   desc: 'Zdominuj pierwszą stronę Google dla kliniki estetycznej.' },
+      { values: { topN: '5',  minCount: 3 }, label: '3 frazy w Top 5',   desc: 'Top 5 zgarnia prawie 2/3 kliknięć. Mocny wyróżnik na tle konkurencji.' }
+    ],
     desc: (p) => `Min. ${p.minCount} fraz w Top ${p.topN}`,
     unit: 'fraz',
     lowerIsBetter: false,
@@ -53,6 +64,12 @@ const GOAL_TYPES = {
     hint: 'Np. ruch wzrośnie o co najmniej +15% vs poprzedni okres',
     fields: [
       { key: 'minGrowthPct', label: 'Minimalny wzrost (%)', type: 'number', min: -100, max: 500, placeholder: '15' }
+    ],
+    suggestions: [
+      { values: { minGrowthPct: 10 }, label: '+10% — stabilny',   desc: 'Minimum dla zdrowej kampanii SEO. Poniżej tego wynik może być efektem sezonowości.' },
+      { values: { minGrowthPct: 20 }, label: '+20% — solidny',    desc: 'Realny cel dla agencji aktywnie tworzącej treści i budującej linki.' },
+      { values: { minGrowthPct: 30 }, label: '+30% — ambitny',    desc: 'Wymaga dużego nakładu pracy. Odpowiedni jeśli zaczynasz od niskiej bazy.' },
+      { values: { minGrowthPct: 50 }, label: '+50% — agresywny',  desc: 'Dla nowych stron lub po rebrandingu. Warto wpisać do umowy z agencją.' }
     ],
     desc: (p) => `Wzrost ruchu o min. +${p.minGrowthPct}% vs poprzedni okres`,
     unit: '%',
@@ -75,6 +92,12 @@ const GOAL_TYPES = {
     fields: [
       { key: 'minSessions', label: 'Minimalna liczba sesji', type: 'number', min: 1, placeholder: '500' }
     ],
+    suggestions: [
+      { values: { minSessions: 100  }, label: '100 sesji — start',        desc: 'Minimum dla nowej strony. Potwierdza, że SEO w ogóle zaczyna działać.' },
+      { values: { minSessions: 300  }, label: '300 sesji — widoczność',   desc: 'Klienci zaczynają Cię znajdować. Dobry cel po pierwszych 6 miesiącach.' },
+      { values: { minSessions: 500  }, label: '500 sesji — solidna baza', desc: 'Przy średnim CTR ~3% to ok. 15 000 wyświetleń — solidna widoczność lokalna.' },
+      { values: { minSessions: 1000 }, label: '1000 sesji — lider',       desc: 'W branży gabinetów estetycznych w Warszawie to poziom lidera rynku.' }
+    ],
     desc: (p) => `Min. ${Number(p.minSessions).toLocaleString('pl')} sesji organicznych`,
     unit: 'sesji',
     lowerIsBetter: false,
@@ -95,6 +118,11 @@ const GOAL_TYPES = {
       { key: 'keyword', label: 'Fraza kluczowa', type: 'keyword-select' },
       { key: 'minCtr',  label: 'Minimalny CTR (%)', type: 'number', min: 0.1, max: 100, step: 0.1, placeholder: '5' }
     ],
+    suggestions: [
+      { values: { minCtr: 2 }, label: '2% — minimum',        desc: 'Dla ogólnych fraz to norma. Poniżej warto poprawić meta title i description.' },
+      { values: { minCtr: 5 }, label: '5% — dobry wynik',    desc: 'Atrakcyjny tytuł i opis przekonują do kliknięcia. Powyżej średniej branżowej.' },
+      { values: { minCtr: 8 }, label: '8% — bardzo dobry',   desc: 'Osiągalny dla fraz z nazwą marki lub bardzo precyzyjnych zapytań lokalnych.' }
+    ],
     desc: (p) => `CTR frazy „${p.keyword}" ≥ ${p.minCtr}%`,
     unit: '%',
     lowerIsBetter: false,
@@ -114,6 +142,12 @@ const GOAL_TYPES = {
     hint: 'Np. co najmniej 10 000 wyświetleń w wynikach Google',
     fields: [
       { key: 'minImpressions', label: 'Minimalna liczba wyświetleń', type: 'number', min: 1, placeholder: '10000' }
+    ],
+    suggestions: [
+      { values: { minImpressions: 1000  }, label: '1 000 — start',         desc: 'Potwierdza indeksowanie i widoczność. Punkt wyjścia dla nowych stron.' },
+      { values: { minImpressions: 5000  }, label: '5 000 — widoczność',    desc: 'Strona pojawia się regularnie w wynikach, nawet na słabszych pozycjach.' },
+      { values: { minImpressions: 10000 }, label: '10 000 — solidna baza', desc: 'Typowy wynik po 6–12 miesiącach SEO dla gabinetu w dużym mieście.' },
+      { values: { minImpressions: 20000 }, label: '20 000 — lider',        desc: 'Bardzo duża widoczność — domena jest rozpoznawalna przez algorytm Google.' }
     ],
     desc: (p) => `Min. ${Number(p.minImpressions).toLocaleString('pl')} wyświetleń`,
     unit: 'wyśw.',

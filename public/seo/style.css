@@ -1227,6 +1227,79 @@ tr.trend-stable td:first-child { border-left: 3px solid var(--border); }
   margin-bottom: 14px;
 }
 
+.goal-suggestions {
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.goal-suggestions-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+  font-family: var(--font-display);
+}
+
+.goal-suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.goal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+  position: relative;
+}
+
+.goal-chip:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: rgba(59,130,246,.08);
+}
+
+.goal-chip.active {
+  border-color: var(--blue);
+  background: rgba(59,130,246,.15);
+  color: var(--blue);
+}
+
+.goal-chip-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: normal;
+  width: 220px;
+  line-height: 1.5;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  pointer-events: none;
+}
+
+.goal-chip:hover .goal-chip-tooltip {
+  display: block;
+}
+
 .goal-params-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
