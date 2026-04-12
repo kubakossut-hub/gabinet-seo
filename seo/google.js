@@ -37,13 +37,32 @@ function getAuth() {
   });
 }
 
-// ── Quarter helpers ────────────────────────────────────────────────────────
+// ── Date helpers ───────────────────────────────────────────────────────────
 
+function fmt(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+// Rolling 28-day window. GSC data lags ~2 days so we end 2 days ago.
+// period 0 = last 28 days, period -1 = previous 28 days
+function rollingRange(period) {
+  const end = new Date();
+  end.setDate(end.getDate() - 2 + period * 28); // -2 day GSC lag
+  const start = new Date(end);
+  start.setDate(start.getDate() - 27);
+  const endFmt = fmt(end);
+  const startFmt = fmt(start);
+  const label = period === 0
+    ? `${startFmt} – ${endFmt}`
+    : `prev. ${startFmt} – ${endFmt}`;
+  return { start: startFmt, end: endFmt, label };
+}
+
+// Calendar quarter — used only for GA4 traffic (business comparison)
 function quarterRange(offset) {
-  // offset 0 = current quarter, -1 = previous quarter
   const now = new Date();
   const year = now.getFullYear();
-  const q = Math.floor(now.getMonth() / 3); // 0..3
+  const q = Math.floor(now.getMonth() / 3);
   const targetQ = q + offset;
   const adjustedYear = year + Math.floor(targetQ / 4);
   const normalizedQ = ((targetQ % 4) + 4) % 4;
@@ -51,17 +70,12 @@ function quarterRange(offset) {
   const endMonth = startMonth + 2;
   const start = new Date(adjustedYear, startMonth, 1);
   const endDay = new Date(adjustedYear, endMonth + 1, 0);
-  // Don't go beyond today
   const end = endDay > now ? now : endDay;
   return {
     start: fmt(start),
     end: fmt(end),
     label: `Q${normalizedQ + 1} ${adjustedYear}`
   };
-}
-
-function fmt(d) {
-  return d.toISOString().slice(0, 10);
 }
 
 // ── GSC — Keywords ─────────────────────────────────────────────────────────
@@ -77,8 +91,10 @@ async function fetchKeywords() {
   const client = await auth.getClient();
   const webmasters = google.webmasters({ version: 'v3', auth: client });
 
-  const currQ = quarterRange(0);
-  const prevQ = quarterRange(-1);
+  // Rolling 28-day windows — matches GSC UI default, avoids thin data at
+  // start of a calendar quarter, and respects the ~2-day GSC data lag
+  const curr = rollingRange(0);
+  const prev = rollingRange(-1);
 
   async function queryKeywords(dateRange) {
     const res = await webmasters.searchanalytics.query({
@@ -87,32 +103,38 @@ async function fetchKeywords() {
         startDate: dateRange.start,
         endDate: dateRange.end,
         dimensions: ['query'],
-        rowLimit: 100
+        searchType: 'web',
+        dataState: 'all',   // include fresh unconfirmed data (last 2-3 days)
+        rowLimit: 1000
       }
     });
     return res.data.rows || [];
   }
 
-  const [currRows, prevRows] = await Promise.all([queryKeywords(currQ), queryKeywords(prevQ)]);
+  const [currRows, prevRows] = await Promise.all([
+    queryKeywords(curr),
+    queryKeywords(prev)
+  ]);
 
   const prevMap = {};
-  for (const r of prevRows) prevMap[r.keys[0]] = r;
+  for (const r of prevRows) prevMap[r.keys[0].toLowerCase()] = r;
 
   const keywords = cfg.trackedKeywords.map(kw => {
-    const curr = currRows.find(r => r.keys[0] === kw);
-    const prev = prevMap[kw];
-    const position = curr ? Math.round(curr.position * 10) / 10 : null;
-    const positionPrev = prev ? Math.round(prev.position * 10) / 10 : null;
-    const clicks = curr ? curr.clicks : 0;
-    const clicksPrev = prev ? prev.clicks : 0;
-    const impressions = curr ? curr.impressions : 0;
-    const ctr = curr ? Math.round(curr.ctr * 1000) / 10 : 0; // %
+    const kwLower = kw.toLowerCase();
+    const currRow = currRows.find(r => r.keys[0].toLowerCase() === kwLower);
+    const prevRow = prevMap[kwLower];
+    const position     = currRow ? Math.round(currRow.position * 10) / 10 : null;
+    const positionPrev = prevRow ? Math.round(prevRow.position * 10) / 10 : null;
+    const clicks       = currRow ? currRow.clicks : 0;
+    const clicksPrev   = prevRow ? prevRow.clicks : 0;
+    const impressions  = currRow ? currRow.impressions : 0;
+    const ctr          = currRow ? Math.round(currRow.ctr * 1000) / 10 : 0;
 
     let trend = 'stable';
     if (position !== null && positionPrev !== null) {
       const delta = position - positionPrev; // negative = improvement
-      if (delta <= -2) trend = 'up';
-      else if (delta >= 2) trend = 'down';
+      if (delta <= -1) trend = 'up';
+      else if (delta >= 1) trend = 'down';
     } else if (clicksPrev > 0) {
       const pct = (clicks - clicksPrev) / clicksPrev * 100;
       if (pct >= 10) trend = 'up';
@@ -123,7 +145,9 @@ async function fetchKeywords() {
       keyword: kw,
       position,
       positionPrev,
-      delta: position !== null && positionPrev !== null ? Math.round((position - positionPrev) * 10) / 10 : null,
+      delta: position !== null && positionPrev !== null
+        ? Math.round((position - positionPrev) * 10) / 10
+        : null,
       clicks,
       clicksPrev,
       impressions,
@@ -132,7 +156,11 @@ async function fetchKeywords() {
     };
   });
 
-  const result = { keywords, currQuarter: currQ.label, prevQuarter: prevQ.label };
+  const result = {
+    keywords,
+    currQuarter: `ostatnie 28 dni (${curr.start} – ${curr.end})`,
+    prevQuarter: `poprzednie 28 dni (${prev.start} – ${prev.end})`
+  };
   cache.set('gsc-keywords', result);
   return result;
 }
@@ -149,14 +177,16 @@ async function fetchPages() {
 
   const client = await auth.getClient();
   const webmasters = google.webmasters({ version: 'v3', auth: client });
-  const currQ = quarterRange(0);
+  const currW = rollingRange(0);
 
   const res = await webmasters.searchanalytics.query({
     siteUrl: cfg.gscProperty,
     requestBody: {
-      startDate: currQ.start,
-      endDate: currQ.end,
+      startDate: currW.start,
+      endDate: currW.end,
       dimensions: ['page'],
+      searchType: 'web',
+      dataState: 'all',
       rowLimit: 10
     }
   });
@@ -169,7 +199,7 @@ async function fetchPages() {
     position: Math.round(r.position * 10) / 10
   }));
 
-  const result = { pages, quarter: currQ.label };
+  const result = { pages, quarter: `ostatnie 28 dni (${currW.start} – ${currW.end})` };
   cache.set('gsc-pages', result);
   return result;
 }
@@ -186,14 +216,16 @@ async function fetchDevices() {
 
   const client = await auth.getClient();
   const webmasters = google.webmasters({ version: 'v3', auth: client });
-  const currQ = quarterRange(0);
+  const currW = rollingRange(0);
 
   const res = await webmasters.searchanalytics.query({
     siteUrl: cfg.gscProperty,
     requestBody: {
-      startDate: currQ.start,
-      endDate: currQ.end,
+      startDate: currW.start,
+      endDate: currW.end,
       dimensions: ['device'],
+      searchType: 'web',
+      dataState: 'all',
       rowLimit: 10
     }
   });
@@ -232,6 +264,8 @@ async function fetchChart() {
       startDate: fmt(startDate),
       endDate: fmt(endDate),
       dimensions: ['date'],
+      searchType: 'web',
+      dataState: 'all',
       rowLimit: 500
     }
   });
