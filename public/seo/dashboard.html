@@ -43,6 +43,25 @@
   <button data-tab="supplier">Dostawca</button>
 </nav>
 
+<!-- ── Period bar ─────────────────────────────────────────────────────── -->
+<div class="period-bar">
+  <span class="period-label">Zakres:</span>
+  <div class="period-presets" id="periodPresets">
+    <button class="period-btn" data-days="7">7 dni</button>
+    <button class="period-btn active" data-days="28">28 dni</button>
+    <button class="period-btn" data-days="90">90 dni</button>
+    <button class="period-btn" data-days="180">6 mies.</button>
+    <button class="period-btn" data-days="365">12 mies.</button>
+    <button class="period-btn" id="periodCustomToggle">Własny…</button>
+  </div>
+  <div class="period-custom-range" id="periodCustomRange" style="display:none">
+    <input type="date" id="periodFrom">
+    <span class="period-sep">–</span>
+    <input type="date" id="periodTo">
+    <button class="btn-sm btn-primary" id="periodApplyBtn">Zastosuj</button>
+  </div>
+</div>
+
 <div class="main">
 
   <!-- ── Pozycje ──────────────────────────────────────────────────── -->
@@ -64,6 +83,17 @@
         <div class="card-actions">
           <span id="positionsQuarterBadge" style="font-size:11px;color:var(--text-muted)"></span>
         </div>
+      </div>
+      <div class="col-controls" id="colControls">
+        <span class="col-controls-label">Kolumny:</span>
+        <label class="col-toggle"><input type="checkbox" data-col="position" checked> Pozycja</label>
+        <label class="col-toggle"><input type="checkbox" data-col="positionPrev" checked> Poprzednia</label>
+        <label class="col-toggle"><input type="checkbox" data-col="delta" checked> Zmiana</label>
+        <label class="col-toggle"><input type="checkbox" data-col="clicks" checked> Kliknięcia</label>
+        <label class="col-toggle"><input type="checkbox" data-col="impressions" checked> Wyświetlenia</label>
+        <label class="col-toggle"><input type="checkbox" data-col="ctr" checked> CTR</label>
+        <label class="col-toggle"><input type="checkbox" data-col="trend" checked> Trend</label>
+        <input type="search" class="kw-search" id="kwFilter" placeholder="Szukaj frazy…">
       </div>
       <div id="positionsContent">
         <div class="loading"><div class="spinner"></div> Pobieranie danych z Google…</div>

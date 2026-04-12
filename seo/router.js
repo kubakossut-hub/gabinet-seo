@@ -52,23 +52,33 @@ router.get('/api/me', auth.me);
 
 // ── Data API (all logged-in users) ─────────────────────────────────────────
 
-function wrap(fn) {
-  return async (req, res) => {
-    try {
-      const result = await fn();
-      res.json(result);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: err.message || 'Błąd serwera' });
-    }
-  };
+function parsePeriod(req) {
+  const days = Math.min(Math.max(parseInt(req.query.days) || 28, 1), 365);
+  const from = req.query.from || null;
+  const to   = req.query.to   || null;
+  return { days, from, to };
 }
 
-router.get('/api/keywords', auth.requireAuth, wrap(google.fetchKeywords));
-router.get('/api/traffic', auth.requireAuth, wrap(google.fetchTraffic));
-router.get('/api/pages', auth.requireAuth, wrap(google.fetchPages));
-router.get('/api/devices', auth.requireAuth, wrap(google.fetchDevices));
-router.get('/api/chart', auth.requireAuth, wrap(google.fetchChart));
+router.get('/api/keywords', auth.requireAuth, async (req, res) => {
+  try { res.json(await google.fetchKeywords(parsePeriod(req))); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+router.get('/api/traffic', auth.requireAuth, async (req, res) => {
+  try { res.json(await google.fetchTraffic(parsePeriod(req))); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+router.get('/api/pages', auth.requireAuth, async (req, res) => {
+  try { res.json(await google.fetchPages(parsePeriod(req))); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+router.get('/api/devices', auth.requireAuth, async (req, res) => {
+  try { res.json(await google.fetchDevices(parsePeriod(req))); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+router.get('/api/chart', auth.requireAuth, async (req, res) => {
+  try { res.json(await google.fetchChart(parsePeriod(req))); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 router.get('/api/supplier', auth.requireAuth, (req, res) => {
   res.json(data.getSupplier());

@@ -43,22 +43,53 @@ function fmt(d) {
   return d.toISOString().slice(0, 10);
 }
 
-// Rolling 28-day window. GSC data lags ~2 days so we end 2 days ago.
-// period 0 = last 28 days, period -1 = previous 28 days
-function rollingRange(period) {
+// Rolling window. GSC data lags ~2 days so we end 2 days ago.
+// periodIndex 0 = current window, -1 = previous window of same length
+function rollingRange(periodIndex, days) {
   const end = new Date();
-  end.setDate(end.getDate() - 2 + period * 28); // -2 day GSC lag
+  end.setDate(end.getDate() - 2 + periodIndex * days);
   const start = new Date(end);
-  start.setDate(start.getDate() - 27);
-  const endFmt = fmt(end);
-  const startFmt = fmt(start);
-  const label = period === 0
-    ? `${startFmt} – ${endFmt}`
-    : `prev. ${startFmt} – ${endFmt}`;
-  return { start: startFmt, end: endFmt, label };
+  start.setDate(start.getDate() - (days - 1));
+  return { start: fmt(start), end: fmt(end) };
 }
 
-// Calendar quarter — used only for GA4 traffic (business comparison)
+// Build current + previous date ranges from request opts
+// opts: { days?: number, from?: string, to?: string }
+function buildRanges(opts = {}) {
+  const { days = 28, from = null, to = null } = opts;
+
+  if (from && to) {
+    const f = new Date(from + 'T12:00:00');
+    const t = new Date(to   + 'T12:00:00');
+    const len = Math.round((t - f) / 86400000) + 1;
+    const prevTo   = new Date(f); prevTo.setDate(f.getDate() - 1);
+    const prevFrom = new Date(prevTo); prevFrom.setDate(prevTo.getDate() - len + 1);
+    return {
+      curr:      { start: from, end: to },
+      prev:      { start: fmt(prevFrom), end: fmt(prevTo) },
+      currLabel: `${from} – ${to}`,
+      prevLabel: `${fmt(prevFrom)} – ${fmt(prevTo)}`
+    };
+  }
+
+  const c = rollingRange(0,  days);
+  const p = rollingRange(-1, days);
+  const d = days >= 365 ? '12 mies.' : days >= 180 ? '6 mies.' : days >= 90 ? '90 dni' : days >= 28 ? '28 dni' : `${days} dni`;
+  return {
+    curr:      c,
+    prev:      p,
+    currLabel: `ostatnie ${d} (${c.start} – ${c.end})`,
+    prevLabel: `poprzednie ${d} (${p.start} – ${p.end})`
+  };
+}
+
+// Cache key from period opts
+function periodKey(opts = {}) {
+  const { days = 28, from = null, to = null } = opts;
+  return from ? `${from}_${to}` : `d${days}`;
+}
+
+// Calendar quarter — GA4 traffic business comparison
 function quarterRange(offset) {
   const now = new Date();
   const year = now.getFullYear();
@@ -71,17 +102,15 @@ function quarterRange(offset) {
   const start = new Date(adjustedYear, startMonth, 1);
   const endDay = new Date(adjustedYear, endMonth + 1, 0);
   const end = endDay > now ? now : endDay;
-  return {
-    start: fmt(start),
-    end: fmt(end),
-    label: `Q${normalizedQ + 1} ${adjustedYear}`
-  };
+  return { start: fmt(start), end: fmt(end), label: `Q${normalizedQ + 1} ${adjustedYear}` };
 }
 
 // ── GSC — Keywords ─────────────────────────────────────────────────────────
 
-async function fetchKeywords() {
-  const cached = cache.get('gsc-keywords');
+async function fetchKeywords(opts = {}) {
+  const pk = periodKey(opts);
+  const cacheKey = `gsc-keywords-${pk}`;
+  const cached = cache.get(cacheKey);
   if (cached) return cached;
 
   const cfg = getConfig();
@@ -90,11 +119,7 @@ async function fetchKeywords() {
 
   const client = await auth.getClient();
   const webmasters = google.webmasters({ version: 'v3', auth: client });
-
-  // Rolling 28-day windows — matches GSC UI default, avoids thin data at
-  // start of a calendar quarter, and respects the ~2-day GSC data lag
-  const curr = rollingRange(0);
-  const prev = rollingRange(-1);
+  const { curr, prev, currLabel, prevLabel } = buildRanges(opts);
 
   async function queryKeywords(dateRange) {
     const res = await webmasters.searchanalytics.query({
@@ -104,7 +129,7 @@ async function fetchKeywords() {
         endDate: dateRange.end,
         dimensions: ['query'],
         searchType: 'web',
-        dataState: 'all',   // include fresh unconfirmed data (last 2-3 days)
+        dataState: 'all',
         rowLimit: 1000
       }
     });
@@ -158,17 +183,19 @@ async function fetchKeywords() {
 
   const result = {
     keywords,
-    currQuarter: `ostatnie 28 dni (${curr.start} – ${curr.end})`,
-    prevQuarter: `poprzednie 28 dni (${prev.start} – ${prev.end})`
+    currQuarter: currLabel,
+    prevQuarter: prevLabel
   };
-  cache.set('gsc-keywords', result);
+  cache.set(cacheKey, result);
   return result;
 }
 
 // ── GSC — Top Pages ────────────────────────────────────────────────────────
 
-async function fetchPages() {
-  const cached = cache.get('gsc-pages');
+async function fetchPages(opts = {}) {
+  const pk = periodKey(opts);
+  const cacheKey = `gsc-pages-${pk}`;
+  const cached = cache.get(cacheKey);
   if (cached) return cached;
 
   const cfg = getConfig();
@@ -177,13 +204,13 @@ async function fetchPages() {
 
   const client = await auth.getClient();
   const webmasters = google.webmasters({ version: 'v3', auth: client });
-  const currW = rollingRange(0);
+  const { curr, currLabel } = buildRanges(opts);
 
   const res = await webmasters.searchanalytics.query({
     siteUrl: cfg.gscProperty,
     requestBody: {
-      startDate: currW.start,
-      endDate: currW.end,
+      startDate: curr.start,
+      endDate: curr.end,
       dimensions: ['page'],
       searchType: 'web',
       dataState: 'all',
@@ -199,15 +226,17 @@ async function fetchPages() {
     position: Math.round(r.position * 10) / 10
   }));
 
-  const result = { pages, quarter: `ostatnie 28 dni (${currW.start} – ${currW.end})` };
-  cache.set('gsc-pages', result);
+  const result = { pages, quarter: currLabel };
+  cache.set(cacheKey, result);
   return result;
 }
 
 // ── GSC — Devices ──────────────────────────────────────────────────────────
 
-async function fetchDevices() {
-  const cached = cache.get('gsc-devices');
+async function fetchDevices(opts = {}) {
+  const pk = periodKey(opts);
+  const cacheKey = `gsc-devices-${pk}`;
+  const cached = cache.get(cacheKey);
   if (cached) return cached;
 
   const cfg = getConfig();
@@ -216,13 +245,13 @@ async function fetchDevices() {
 
   const client = await auth.getClient();
   const webmasters = google.webmasters({ version: 'v3', auth: client });
-  const currW = rollingRange(0);
+  const { curr } = buildRanges(opts);
 
   const res = await webmasters.searchanalytics.query({
     siteUrl: cfg.gscProperty,
     requestBody: {
-      startDate: currW.start,
-      endDate: currW.end,
+      startDate: curr.start,
+      endDate: curr.end,
       dimensions: ['device'],
       searchType: 'web',
       dataState: 'all',
@@ -237,14 +266,16 @@ async function fetchDevices() {
   }));
 
   const result = { devices };
-  cache.set('gsc-devices', result);
+  cache.set(cacheKey, result);
   return result;
 }
 
 // ── GSC — Chart (impressions vs clicks, 16 weeks) ─────────────────────────
 
-async function fetchChart() {
-  const cached = cache.get('gsc-chart');
+async function fetchChart(opts = {}) {
+  const pk = periodKey(opts);
+  const cacheKey = `gsc-chart-${pk}`;
+  const cached = cache.get(cacheKey);
   if (cached) return cached;
 
   const cfg = getConfig();
@@ -253,27 +284,24 @@ async function fetchChart() {
 
   const client = await auth.getClient();
   const webmasters = google.webmasters({ version: 'v3', auth: client });
-
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 7 * 16);
+  const { curr } = buildRanges(opts);
 
   const res = await webmasters.searchanalytics.query({
     siteUrl: cfg.gscProperty,
     requestBody: {
-      startDate: fmt(startDate),
-      endDate: fmt(endDate),
+      startDate: curr.start,
+      endDate: curr.end,
       dimensions: ['date'],
       searchType: 'web',
       dataState: 'all',
-      rowLimit: 500
+      rowLimit: 1000
     }
   });
 
   // Aggregate by week
   const weekMap = {};
   for (const r of (res.data.rows || [])) {
-    const d = new Date(r.keys[0]);
+    const d = new Date(r.keys[0] + 'T12:00:00');
     const weekStart = new Date(d);
     weekStart.setDate(d.getDate() - d.getDay());
     const key = fmt(weekStart);
@@ -282,16 +310,18 @@ async function fetchChart() {
     weekMap[key].impressions += r.impressions;
   }
 
-  const weeks = Object.values(weekMap).sort((a, b) => a.date.localeCompare(b.date)).slice(-16);
+  const weeks = Object.values(weekMap).sort((a, b) => a.date.localeCompare(b.date));
   const result = { weeks };
-  cache.set('gsc-chart', result);
+  cache.set(cacheKey, result);
   return result;
 }
 
 // ── GA4 — Traffic ──────────────────────────────────────────────────────────
 
-async function fetchTraffic() {
-  const cached = cache.get('ga4-traffic');
+async function fetchTraffic(opts = {}) {
+  const pk = periodKey(opts);
+  const cacheKey = `ga4-traffic-${pk}`;
+  const cached = cache.get(cacheKey);
   if (cached) return cached;
 
   const cfg = getConfig();
@@ -301,8 +331,7 @@ async function fetchTraffic() {
   const client = await auth.getClient();
   const analyticsdata = google.analyticsdata({ version: 'v1beta', auth: client });
 
-  const currQ = quarterRange(0);
-  const prevQ = quarterRange(-1);
+  const { curr: currQ, prev: prevQ, currLabel, prevLabel } = buildRanges(opts);
 
   async function queryTraffic(dateRange) {
     const res = await analyticsdata.properties.runReport({
@@ -349,7 +378,7 @@ async function fetchTraffic() {
     return Object.entries(weekMap).map(([week, sessions]) => ({ week, sessions })).slice(-12);
   }
 
-  const [curr, prev, weeklyTrend] = await Promise.all([
+  const [currData, prevData, weeklyTrend] = await Promise.all([
     queryTraffic(currQ),
     queryTraffic(prevQ),
     queryWeeklyTrend()
@@ -361,17 +390,17 @@ async function fetchTraffic() {
   }
 
   const result = {
-    current: curr,
-    previous: prev,
-    sessionsDelta: pct(curr.sessions, prev.sessions),
-    usersDelta: pct(curr.users, prev.users),
-    newUsersDelta: pct(curr.newUsers, prev.newUsers),
+    current: currData,
+    previous: prevData,
+    sessionsDelta:  pct(currData.sessions, prevData.sessions),
+    usersDelta:     pct(currData.users,    prevData.users),
+    newUsersDelta:  pct(currData.newUsers, prevData.newUsers),
     weeklyTrend,
-    currQuarter: currQ.label,
-    prevQuarter: prevQ.label
+    currQuarter: currLabel,
+    prevQuarter: prevLabel
   };
 
-  cache.set('ga4-traffic', result);
+  cache.set(cacheKey, result);
   return result;
 }
 

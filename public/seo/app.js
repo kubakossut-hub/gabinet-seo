@@ -10,6 +10,123 @@ let cachedTraffic  = null;
 let cachedSpend    = null;
 let agencyEmail = '';
 
+// ── Period state ───────────────────────────────────────────────────────────
+
+let period = (() => {
+  try { return JSON.parse(localStorage.getItem('seo-period') || '{}'); } catch { return {}; }
+})();
+if (!period.days && !period.from) period = { days: 28 };
+
+function getApiParams() {
+  if (period.from && period.to) return `?from=${period.from}&to=${period.to}`;
+  return `?days=${period.days || 28}`;
+}
+
+function savePeriod(p) {
+  period = p;
+  localStorage.setItem('seo-period', JSON.stringify(p));
+}
+
+function resetAndReload() {
+  // Clear all data caches; supplier/spend don't depend on period
+  cachedKeywords = null;
+  cachedTraffic  = null;
+  Object.assign(loaded, { positions: false, traffic: false, pages: false, devices: false, chart: false });
+  const activeTab = document.querySelector('.tab-bar button.active')?.dataset.tab;
+  if (activeTab) loadTab(activeTab);
+}
+
+function setupPeriod() {
+  const presets   = document.getElementById('periodPresets');
+  const customToggle = document.getElementById('periodCustomToggle');
+  const customRange  = document.getElementById('periodCustomRange');
+  const fromInput    = document.getElementById('periodFrom');
+  const toInput      = document.getElementById('periodTo');
+  const applyBtn     = document.getElementById('periodApplyBtn');
+
+  // Restore UI state
+  if (period.from && period.to) {
+    fromInput.value = period.from;
+    toInput.value   = period.to;
+    customRange.style.display = '';
+    customToggle.classList.add('active');
+    presets.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  } else {
+    const days = period.days || 28;
+    presets.querySelectorAll('.period-btn[data-days]').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.days) === days);
+    });
+  }
+
+  presets.addEventListener('click', (e) => {
+    const btn = e.target.closest('.period-btn[data-days]');
+    if (!btn) return;
+    savePeriod({ days: parseInt(btn.dataset.days) });
+    presets.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    customToggle.classList.remove('active');
+    customRange.style.display = 'none';
+    resetAndReload();
+  });
+
+  customToggle.addEventListener('click', () => {
+    const open = customRange.style.display !== 'none';
+    customRange.style.display = open ? 'none' : '';
+    customToggle.classList.toggle('active', !open);
+    if (!open && period.from) {
+      fromInput.value = period.from;
+      toInput.value   = period.to;
+    }
+  });
+
+  applyBtn.addEventListener('click', () => {
+    const from = fromInput.value;
+    const to   = toInput.value;
+    if (!from || !to || from > to) { toast('Podaj prawidłowy zakres dat', 'error'); return; }
+    savePeriod({ from, to });
+    presets.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    customToggle.classList.add('active');
+    resetAndReload();
+  });
+}
+
+// ── Column visibility ──────────────────────────────────────────────────────
+
+let visibleCols = (() => {
+  try { return JSON.parse(localStorage.getItem('seo-cols') || 'null'); } catch { return null; }
+})() || { position: true, positionPrev: true, delta: true, clicks: true, impressions: true, ctr: true, trend: true };
+
+function setupColToggles() {
+  const controls = document.getElementById('colControls');
+  if (!controls) return;
+  controls.querySelectorAll('input[data-col]').forEach(cb => {
+    cb.checked = visibleCols[cb.dataset.col] !== false;
+    cb.addEventListener('change', () => {
+      visibleCols[cb.dataset.col] = cb.checked;
+      localStorage.setItem('seo-cols', JSON.stringify(visibleCols));
+      applyColVisibility();
+    });
+  });
+  applyColVisibility();
+
+  document.getElementById('kwFilter').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    document.querySelectorAll('#positionsContent tbody tr').forEach(row => {
+      row.style.display = !q || row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+}
+
+function applyColVisibility() {
+  const cols = ['position', 'positionPrev', 'delta', 'clicks', 'impressions', 'ctr', 'trend'];
+  cols.forEach(col => {
+    const show = visibleCols[col] !== false;
+    document.querySelectorAll(`.kw-col-${col}`).forEach(el => {
+      el.style.display = show ? '' : 'none';
+    });
+  });
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
 
 async function init() {
@@ -36,6 +153,8 @@ async function init() {
 
   setupTabs();
   setupHelp();
+  setupPeriod();
+  setupColToggles();
   loadTab('positions');
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -185,7 +304,7 @@ function setupHelp() {
 
 async function loadPositions() {
   try {
-    const data = await apiFetch('/seo/api/keywords');
+    const data = await apiFetch('/seo/api/keywords' + getApiParams());
     if (data.error) {
       document.getElementById('googleWarnPositions').style.display = '';
       document.getElementById('positionsContent').innerHTML = '';
@@ -232,13 +351,13 @@ function renderPositions({ keywords }) {
 
     return `<tr class="${trendClass}">
       <td><strong>${esc(k.keyword)}</strong></td>
-      <td><span class="pos ${posClass}">${posStr}</span></td>
-      <td style="color:var(--text-muted)">${posPrevStr}</td>
-      <td>${deltaHtml}</td>
-      <td>${k.clicks.toLocaleString('pl')}</td>
-      <td style="color:var(--text-muted)">${k.impressions.toLocaleString('pl')}</td>
-      <td>${k.ctr}%</td>
-      <td>${badge}</td>
+      <td class="kw-col-position"><span class="pos ${posClass}">${posStr}</span></td>
+      <td class="kw-col-positionPrev" style="color:var(--text-muted)">${posPrevStr}</td>
+      <td class="kw-col-delta">${deltaHtml}</td>
+      <td class="kw-col-clicks">${k.clicks.toLocaleString('pl')}</td>
+      <td class="kw-col-impressions" style="color:var(--text-muted)">${k.impressions.toLocaleString('pl')}</td>
+      <td class="kw-col-ctr">${k.ctr}%</td>
+      <td class="kw-col-trend">${badge}</td>
     </tr>`;
   }).join('');
 
@@ -248,13 +367,13 @@ function renderPositions({ keywords }) {
         <thead>
           <tr>
             <th>Fraza kluczowa</th>
-            <th>Pozycja</th>
-            <th>Poprzednio</th>
-            <th>Zmiana</th>
-            <th>Kliknięcia</th>
-            <th>Wyświetlenia</th>
-            <th>CTR</th>
-            <th>Trend</th>
+            <th class="kw-col-position">Pozycja</th>
+            <th class="kw-col-positionPrev">Poprzednio</th>
+            <th class="kw-col-delta">Zmiana</th>
+            <th class="kw-col-clicks">Kliknięcia</th>
+            <th class="kw-col-impressions">Wyświetlenia</th>
+            <th class="kw-col-ctr">CTR</th>
+            <th class="kw-col-trend">Trend</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -266,6 +385,7 @@ function renderPositions({ keywords }) {
       <span style="color:var(--red)">11+ poza pierwszą stroną</span> ·
       Zmiana: ▲ mniejszy numer = lepsza pozycja · ▼ wyższy numer = gorsza pozycja
     </p>`;
+  applyColVisibility();
 }
 
 // ── Traffic ────────────────────────────────────────────────────────────────
@@ -275,7 +395,7 @@ async function loadTraffic() {
   const chartEl = document.getElementById('trafficChartWrap');
 
   try {
-    const d = await apiFetch('/seo/api/traffic');
+    const d = await apiFetch('/seo/api/traffic' + getApiParams());
     if (d.error) {
       document.getElementById('googleWarnTraffic').style.display = '';
       statsEl.innerHTML = '';
@@ -343,7 +463,7 @@ function renderTrafficChart(d) {
 
 async function loadPages() {
   try {
-    const d = await apiFetch('/seo/api/pages');
+    const d = await apiFetch('/seo/api/pages' + getApiParams());
     if (d.error) {
       document.getElementById('googleWarnPages').style.display = '';
       document.getElementById('pagesContent').innerHTML = '';
@@ -388,7 +508,7 @@ function shortUrl(url) {
 
 async function loadDevices() {
   try {
-    const d = await apiFetch('/seo/api/devices');
+    const d = await apiFetch('/seo/api/devices' + getApiParams());
     if (d.error) {
       document.getElementById('googleWarnDevices').style.display = '';
       document.getElementById('devicesContent').innerHTML = '';
@@ -435,7 +555,7 @@ async function loadDevices() {
 async function loadChart() {
   document.getElementById('chartLoading').style.display = '';
   try {
-    const d = await apiFetch('/seo/api/chart');
+    const d = await apiFetch('/seo/api/chart' + getApiParams());
     document.getElementById('chartLoading').style.display = 'none';
     if (d.error) { document.getElementById('googleWarnChart').style.display = ''; return; }
     if (!d.weeks || !d.weeks.length) return;
@@ -612,8 +732,8 @@ async function openEmailDraft() {
   // Fetch any data not yet cached
   try {
     const [kw, tr, supp, spend] = await Promise.all([
-      cachedKeywords ? Promise.resolve(cachedKeywords) : apiFetch('/seo/api/keywords').catch(() => null),
-      cachedTraffic  ? Promise.resolve(cachedTraffic)  : apiFetch('/seo/api/traffic').catch(() => null),
+      cachedKeywords ? Promise.resolve(cachedKeywords) : apiFetch('/seo/api/keywords' + getApiParams()).catch(() => null),
+      cachedTraffic  ? Promise.resolve(cachedTraffic)  : apiFetch('/seo/api/traffic'  + getApiParams()).catch(() => null),
       cachedSupplier ? Promise.resolve(cachedSupplier) : apiFetch('/seo/api/supplier').catch(() => null),
       cachedSpend    ? Promise.resolve(cachedSpend)    : apiFetch('/seo/api/spend').catch(() => null),
     ]);
