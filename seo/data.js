@@ -25,11 +25,13 @@ function writeJSON(name, data) {
 
 // ── Users ──────────────────────────────────────────────────────────────────
 
+// SECURITY: change this password immediately after first login via the Admin panel.
 const DEFAULT_ADMIN_PASSWORD = 'admin123';
 
 async function initUsers() {
   const fp = filePath('users.json');
   if (fs.existsSync(fp)) return;
+  console.warn('[SECURITY] Initialising default admin account with password "admin123" — change it immediately after first login.');
   const hash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 10);
   writeJSON('users.json', {
     firstRun: true,
