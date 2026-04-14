@@ -11,6 +11,10 @@ const { evaluateGoals, GOAL_TYPES } = require('./goals');
 
 // ── Session ────────────────────────────────────────────────────────────────
 
+if (!process.env.SESSION_SECRET) {
+  console.warn('[SECURITY] SESSION_SECRET env var is not set — using insecure default. Set it in Railway / .env before production use.');
+}
+
 router.use(session({
   secret: process.env.SESSION_SECRET || 'seo-secret-change-in-production',
   resave: false,
