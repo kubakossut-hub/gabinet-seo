@@ -7,6 +7,10 @@ app.set('trust proxy', 1); // Required for secure cookies behind Railway / Herok
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // SEO Dashboard module
 const seoRouter = require('./seo/router');
 const { initUsers } = require('./seo/data');
@@ -19,4 +23,8 @@ app.get('/', (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Running on port ${port}`));
+if (require.main === module) {
+  app.listen(port, () => console.log(`Running on port ${port}`));
+}
+
+module.exports = app;
