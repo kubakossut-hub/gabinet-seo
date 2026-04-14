@@ -89,12 +89,13 @@ router.get('/api/spend', auth.requireAuth, (req, res) => {
   const cfg = data.getConfig();
   const spendData = data.getSpend();
   const avgCpc = cfg.avgCpcPln || 8.5;
-  // Fetch cached traffic to estimate organic value
-  const trafficCache = cache.get('ga4-traffic');
+  // TODO: `organicSessions` per spend entry is never populated — frontend checks
+  // `e.organicSessions` but the API only sends `organicValue: null`. ROI column
+  // will always show "brak danych GA" until this join is implemented.
   const result = spendData.entries.map(e => {
     return {
       ...e,
-      organicValue: null, // calculated on frontend using traffic data
+      organicValue: null,
       avgCpc
     };
   });
@@ -124,10 +125,10 @@ router.put('/api/admin/users/:username', auth.requireAdmin, async (req, res) => 
   const { username } = req.params;
   const { password, role, email } = req.body || {};
   try {
-    if (password) await data.changePassword(username, password);
     const d = data.getUsers();
     const user = d.users.find(u => u.username === username);
     if (!user) return res.status(404).json({ error: 'Użytkownik nie istnieje' });
+    if (password) await data.changePassword(username, password);
     if (role) {
       if (!['admin', 'viewer'].includes(role)) return res.status(400).json({ error: 'Nieprawidłowa rola' });
       user.role = role;
