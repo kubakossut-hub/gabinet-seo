@@ -11,6 +11,9 @@ const { evaluateGoals, GOAL_TYPES } = require('./goals');
 
 // ── Session ────────────────────────────────────────────────────────────────
 
+// SECURITY: SESSION_SECRET must be set via env var in production.
+// The fallback string below is publicly known — any attacker can forge session cookies
+// when SESSION_SECRET is not configured. Set a strong random value (32+ chars) on Railway.
 router.use(session({
   secret: process.env.SESSION_SECRET || 'seo-secret-change-in-production',
   resave: false,

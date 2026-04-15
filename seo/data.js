@@ -25,6 +25,9 @@ function writeJSON(name, data) {
 
 // ── Users ──────────────────────────────────────────────────────────────────
 
+// SECURITY: This default password is publicly known in source code.
+// The admin MUST change it immediately after first login (/seo/admin → zmień hasło).
+// firstRun flag (cleared on first admin login) serves as a reminder banner trigger.
 const DEFAULT_ADMIN_PASSWORD = 'admin123';
 
 async function initUsers() {
