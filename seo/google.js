@@ -12,16 +12,16 @@ function loadCredentials() {
   // Priority 1: environment variable (Railway production)
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (raw && raw.trim().startsWith('{')) {
-    try { return JSON.parse(raw); } catch {}
+    try { return JSON.parse(raw); } catch {} // intentional: fall through to next strategy
   }
   if (raw && !raw.trim().startsWith('{')) {
     // Try base64
-    try { return JSON.parse(Buffer.from(raw, 'base64').toString('utf8')); } catch {}
+    try { return JSON.parse(Buffer.from(raw, 'base64').toString('utf8')); } catch {} // intentional: fall through to file fallback
   }
   // Priority 2: file (local development)
   try {
     if (fs.existsSync(KEY_FILE)) return JSON.parse(fs.readFileSync(KEY_FILE, 'utf8'));
-  } catch {}
+  } catch {} // intentional: returns null below if file missing or malformed
   return null;
 }
 

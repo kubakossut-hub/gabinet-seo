@@ -89,8 +89,6 @@ router.get('/api/spend', auth.requireAuth, (req, res) => {
   const cfg = data.getConfig();
   const spendData = data.getSpend();
   const avgCpc = cfg.avgCpcPln || 8.5;
-  // Fetch cached traffic to estimate organic value
-  const trafficCache = cache.get('ga4-traffic');
   const result = spendData.entries.map(e => {
     return {
       ...e,

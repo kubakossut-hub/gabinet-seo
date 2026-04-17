@@ -178,7 +178,7 @@ async function evaluateGoals(goals, opts = {}) {
     if (!typeInfo) return { ...goal, status: 'unknown', progress: 0, desc: goal.type };
 
     let evaluated = { current: null, target: null, status: 'unknown', progress: 0 };
-    try { evaluated = typeInfo.evaluate(goal.params || {}, kwData, trafficData); } catch {}
+    try { evaluated = typeInfo.evaluate(goal.params || {}, kwData, trafficData); } catch {} // intentional: failed goal evaluation falls back to 'unknown' status
 
     return {
       ...goal,
