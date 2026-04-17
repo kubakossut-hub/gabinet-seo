@@ -11,6 +11,10 @@ const { evaluateGoals, GOAL_TYPES } = require('./goals');
 
 // ── Session ────────────────────────────────────────────────────────────────
 
+// SECURITY S4 — Fallback secret jest publiczny w kodzie źródłowym. Jeśli SESSION_SECRET
+// nie jest ustawiony w zmiennych środowiskowych, atakujący może fałszować ciasteczka sesji.
+// Ustaw SESSION_SECRET na Railway: minimum 32 losowe znaki, np.:
+//   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 router.use(session({
   secret: process.env.SESSION_SECRET || 'seo-secret-change-in-production',
   resave: false,
@@ -237,6 +241,10 @@ router.delete('/api/admin/goals/:id', auth.requireAdmin, (req, res) => {
 
 // ── First-run check ────────────────────────────────────────────────────────
 
+// NOTE S6 — Ten endpoint celowo nie wymaga auth.requireAuth. Przy pierwszym
+// uruchomieniu nie istnieje jeszcze żaden użytkownik, więc uwierzytelnienie
+// jest niemożliwe. Frontend sprawdza /api/firstrun przed pokazaniem kreatora
+// pierwszej konfiguracji. Endpoint zwraca tylko boolean {firstRun: true/false}.
 router.get('/api/firstrun', (req, res) => {
   const d = data.getUsers();
   res.json({ firstRun: !!d.firstRun });
