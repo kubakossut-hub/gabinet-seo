@@ -25,6 +25,9 @@ function writeJSON(name, data) {
 
 // ── Users ──────────────────────────────────────────────────────────────────
 
+// SECURITY S3 — Domyślne hasło admina ('admin123') jest znane z kodu źródłowego.
+// Po pierwszym uruchomieniu zaloguj się jako admin i natychmiast zmień hasło
+// w panelu /seo/admin (sekcja Użytkownicy). Nie zostawiaj domyślnego hasła na produkcji.
 const DEFAULT_ADMIN_PASSWORD = 'admin123';
 
 async function initUsers() {

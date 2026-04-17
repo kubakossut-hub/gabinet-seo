@@ -210,6 +210,15 @@
 // ═══════════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════════
+// SECURITY S1 — JSONBIN_MASTER_KEY jest widoczny w source code tego pliku HTML.
+// Plik jest serwowany publicznie (GitHub Pages). Każdy kto zobaczy źródło strony
+// ma pełny dostęp read/write do JSONBin. Aby to naprawić:
+//   1. Zaloguj się na jsonbin.io → Settings → API Keys → utwórz dedykowany
+//      X-Access-Key z uprawnieniem READ-ONLY dla tego bina.
+//   2. Wklej go do JSONBIN_ACCESS_KEY poniżej (zamiast JSONBIN_MASTER_KEY).
+//   3. Zrotuj (unieważnij) JSONBIN_MASTER_KEY na koncie JSONBin.
+// SECURITY S2 — PASSWORD_HASH to SHA-256 bez soli. Podatny na rainbow tables
+// i GPU brute-force. Docelowo auth powinien trafić do backendu (jak SEO dashboard).
 const CONFIG = {
   PASSWORD_HASH: '14d7bf10e51501f93b86a77e9d4fc0b0735a635bd12410780c3f324685b2bd2b',
   JSONBIN_MASTER_KEY: '$2a$10$DKfM5HwIF4Nvy9t9yTJqX.Ea9czsyCUU3FQDlnKnuVR0rwR5PUzUa',
