@@ -89,8 +89,6 @@ router.get('/api/spend', auth.requireAuth, (req, res) => {
   const cfg = data.getConfig();
   const spendData = data.getSpend();
   const avgCpc = cfg.avgCpcPln || 8.5;
-  // Fetch cached traffic to estimate organic value
-  const trafficCache = cache.get('ga4-traffic');
   const result = spendData.entries.map(e => {
     return {
       ...e,
@@ -178,6 +176,8 @@ router.post('/api/admin/spend', auth.requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// NOTE Q5: `month` z URL nie jest walidowany pod kątem formatu YYYY-MM.
+// Niskie ryzyko (admin-only), ale przy dodaniu bazy danych warto dodać regex: /^\d{4}-\d{2}$/.
 router.put('/api/admin/supplier/:month', auth.requireAdmin, (req, res) => {
   const { month } = req.params;
   const entry = req.body || {};

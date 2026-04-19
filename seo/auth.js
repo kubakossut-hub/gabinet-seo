@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt');
 const { findUser, getUsers, saveUsers } = require('./data');
-const dataModule = require('./data');
 
 async function login(req, res) {
   const { username, password } = req.body || {};
@@ -36,7 +35,7 @@ function logout(req, res) {
 function me(req, res) {
   if (!req.session.user) return res.status(401).json({ error: 'Nie zalogowano' });
   // Include email from user record (may have been updated since session started)
-  const user = dataModule.findUser(req.session.user.username);
+  const user = findUser(req.session.user.username);
   res.json({ ...req.session.user, email: user ? (user.email || '') : '' });
 }
 
