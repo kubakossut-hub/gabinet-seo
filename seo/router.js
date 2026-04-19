@@ -11,6 +11,9 @@ const { evaluateGoals, GOAL_TYPES } = require('./goals');
 
 // ── Session ────────────────────────────────────────────────────────────────
 
+// SECURITY S4: Fallback secret jest publiczny — każdy może sfałszować ciasteczko sesji.
+// Ustaw SESSION_SECRET na Railway: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+// Minimum 32 losowe znaki. Bez tego konto admina jest podatne na session forgery.
 router.use(session({
   secret: process.env.SESSION_SECRET || 'seo-secret-change-in-production',
   resave: false,
@@ -237,6 +240,8 @@ router.delete('/api/admin/goals/:id', auth.requireAdmin, (req, res) => {
 
 // ── First-run check ────────────────────────────────────────────────────────
 
+// NOTE S6: Endpoint celowo nie wymaga auth — przy pierwszym uruchomieniu nie ma jeszcze żadnego
+// użytkownika, więc requireAuth zawsze by odrzucał. Zwraca wyłącznie boolean {firstRun}.
 router.get('/api/firstrun', (req, res) => {
   const d = data.getUsers();
   res.json({ firstRun: !!d.firstRun });
