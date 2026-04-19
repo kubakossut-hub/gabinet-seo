@@ -705,13 +705,13 @@ function renderSpend({ entries, avgCpc }) {
     const roi = e.spendPln && e.organicSessions
       ? (e.organicSessions * avgCpc / e.spendPln).toFixed(2) : null;
     return `<tr>
-      <td><strong style="font-family:var(--font-display)">${e.month}</strong></td>
+      <td><strong style="font-family:var(--font-display)">${esc(e.month)}</strong></td>
       <td><strong>${e.spendPln ? e.spendPln.toLocaleString('pl') + ' zł' : '—'}</strong></td>
       <td style="color:var(--text-muted)">
         ${e.organicSessions ? Math.round(e.organicSessions * avgCpc).toLocaleString('pl') + ' zł' : '<span style="color:var(--text-muted);font-size:12px">brak danych GA</span>'}
       </td>
       <td>${roi ? `<strong style="color:var(--green);font-family:var(--font-display);font-size:16px">×${roi}</strong>` : '—'}</td>
-      <td style="color:var(--text-muted)">${e.note || '—'}</td>
+      <td style="color:var(--text-muted)">${esc(e.note || '—')}</td>
     </tr>`;
   }).join('');
   document.getElementById('spendContent').innerHTML = `
@@ -786,7 +786,7 @@ function renderGoals(goals, el) {
     return `<div class="goal-card status-${g.status}">
       <div class="goal-card-header">
         <div class="goal-desc">${esc(g.desc || g.type)}</div>
-        <span class="goal-priority ${priorityClass[g.priority] || ''}">${priorityLabel[g.priority] || g.priority}</span>
+        <span class="goal-priority ${priorityClass[g.priority] || ''}">${esc(priorityLabel[g.priority] || g.priority)}</span>
       </div>
       <div class="goal-values">
         <span class="goal-current" style="color:${currentColor}">${currentFmt}</span>

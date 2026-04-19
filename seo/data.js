@@ -25,6 +25,9 @@ function writeJSON(name, data) {
 
 // ── Users ──────────────────────────────────────────────────────────────────
 
+// SECURITY S3: Domyślne hasło admina jest publicznie znane (kod open-source).
+// Po pierwszym logowaniu zmień je natychmiast w /seo/admin → zarządzanie użytkownikami.
+// Docelowo: usuń tę stałą i wymagaj ustawienia hasła podczas pierwszego uruchomienia.
 const DEFAULT_ADMIN_PASSWORD = 'admin123';
 
 async function initUsers() {

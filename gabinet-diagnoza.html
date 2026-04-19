@@ -210,6 +210,15 @@
 // ═══════════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════════
+// SECURITY S1: JSONBIN_MASTER_KEY jest hardcoded w publicznym pliku HTML.
+// Jeśli plik jest serwowany przez GitHub Pages lub inny publiczny hosting,
+// każdy może odczytać klucz ze źródła strony i mieć pełny read/write do bina.
+// Akcja właściciela: zrotuj klucz na jsonbin.io → Settings → API Keys,
+// wygeneruj read-only X-Access-Key przez `node setup.js` i zastąp Master Key.
+//
+// SECURITY S2: PASSWORD_HASH to czysty SHA-256 bez soli.
+// Jest podatny na ataki słownikowe i rainbow tables.
+// Docelowo: przenieś uwierzytelnianie do backendu (dashboard SEO już to robi poprawnie z bcrypt).
 const CONFIG = {
   PASSWORD_HASH: '14d7bf10e51501f93b86a77e9d4fc0b0735a635bd12410780c3f324685b2bd2b',
   JSONBIN_MASTER_KEY: '$2a$10$DKfM5HwIF4Nvy9t9yTJqX.Ea9czsyCUU3FQDlnKnuVR0rwR5PUzUa',
