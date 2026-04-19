@@ -50,6 +50,9 @@ async function login(page) {
   await page.locator('[data-testid="login-modal"]').click();
 
   // Step 1: email
+  // NOTE Q6: BOOKSY_EMAIL i BOOKSY_PASSWORD nie są sprawdzane przed użyciem.
+  // Jeśli zmienne nie są ustawione, Playwright rzuci niejasny błąd przy fill(undefined).
+  // Rozważ wczesne sprawdzenie w server.js lub na początku bookAppointment().
   const emailField = page.locator('[data-testid="email-input"]');
   await emailField.waitFor({ timeout: 10000 });
   await emailField.fill(process.env.BOOKSY_EMAIL);
